@@ -144,7 +144,9 @@ def load_vae_components(vae_checkpoint_path, device):
     """Load pre-trained VAE encoder and decoder from checkpoint"""
     print(f"Loading VAE from: {vae_checkpoint_path}")
     
-    checkpoint = torch.load(vae_checkpoint_path, map_location=device)
+    # Load checkpoint with weights_only=False to allow Config objects
+    # This is safe since we created the checkpoint ourselves
+    checkpoint = torch.load(vae_checkpoint_path, map_location=device, weights_only=False)
     vae_config = VAEConfig()
     
     # Try to get config from checkpoint
@@ -695,7 +697,7 @@ def train_latent_diffusion(
     
     if resume_checkpoint:
         print(f"Resuming from checkpoint: {resume_checkpoint}")
-        checkpoint = torch.load(resume_checkpoint, map_location=device)
+        checkpoint = torch.load(resume_checkpoint, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         start_epoch = checkpoint['epoch'] + 1

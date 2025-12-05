@@ -101,7 +101,9 @@ def load_vae_decoder(vae_checkpoint_path, device):
     """Load pre-trained VAE decoder"""
     print(f"Loading VAE decoder from: {vae_checkpoint_path}")
     
-    checkpoint = torch.load(vae_checkpoint_path, map_location=device)
+    # Load checkpoint with weights_only=False to allow Config objects
+    # This is safe since we created the checkpoint ourselves
+    checkpoint = torch.load(vae_checkpoint_path, map_location=device, weights_only=False)
     vae_config = VAEConfig()
     
     # Try to get config from checkpoint
@@ -309,7 +311,9 @@ def load_diffusion_model(checkpoint_path, latent_dim=128, device='cuda'):
     """Load trained diffusion model"""
     print(f"Loading diffusion model from: {checkpoint_path}")
     
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    # Load checkpoint with weights_only=False to allow Config objects
+    # This is safe since we created the checkpoint ourselves
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     
     # Get schedule type and latent dim from checkpoint
     schedule_type = checkpoint.get('schedule_type', 'linear')
