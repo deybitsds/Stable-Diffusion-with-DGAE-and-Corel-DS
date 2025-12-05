@@ -111,7 +111,11 @@ python 2B-train-lora-corel.py \
 - `--output-dir`: Output directory for LoRA weights (default: `corel_models`)
 - `--base-dir`: Base directory for paths (default: `.`)
 - `--pretrained-model`: Base Stable Diffusion model (default: `runwayml/stable-diffusion-v1-5`)
-- `--epochs`: Number of training epochs (default: `200`)
+- `--epochs`: Number of training epochs (default: `200`, **fully configurable**)
+  - **Few samples (< 50 images)**: Try 300-500 epochs
+  - **Medium dataset (50-200 images)**: 200-300 epochs usually works well
+  - **Large dataset (> 200 images)**: 100-200 epochs may be sufficient
+  - **Quick testing**: Use 10-50 epochs with `--max-samples 10`
 - `--batch-size`: Training batch size (default: `1`)
 - `--grad-accum`: Gradient accumulation steps (default: `4`)
 - `--learning-rate`: Learning rate (default: `1e-4`)
@@ -121,6 +125,18 @@ python 2B-train-lora-corel.py \
 - `--max-samples`: Limit samples for quick testing (default: `None`, use all)
 - `--num-workers`: DataLoader workers (default: `4`, set to `0` to disable)
 - `--no-8bit-adam`: Disable 8-bit Adam optimizer
+
+**Examples with different epoch counts:**
+```bash
+# Quick test (10 epochs, limited samples)
+python 2B-train-lora-corel.py --data-dir training_data/corel/corel_all --epochs 10 --max-samples 20
+
+# Few samples per class (more epochs needed)
+python 2B-train-lora-corel.py --data-dir training_data/corel/class_0001 --epochs 400
+
+# Large dataset (fewer epochs may be enough)
+python 2B-train-lora-corel.py --data-dir training_data/corel/corel_all --epochs 100
+```
 
 **Output:**
 - `corel_models/lora_*.safetensors` - Trained LoRA weights

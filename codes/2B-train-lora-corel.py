@@ -32,6 +32,7 @@ from datetime import datetime
 import argparse
 import sys
 import time
+import json
 
 
 def main():
@@ -99,7 +100,8 @@ Examples:
         '--epochs',
         type=int,
         default=200,
-        help='Number of training epochs (default: 200)'
+        help='Number of training epochs (default: 200). Adjust based on dataset size: '
+             'few samples (<50) may need 300-500, large datasets (>200) may need 100-200'
     )
     parser.add_argument(
         '--batch-size',
@@ -297,8 +299,22 @@ Examples:
     
     # Load dataset
     print(f"\nLoading dataset from {train_data_dir}...")
-    dataset = load_dataset("imagefolder", data_dir=str(train_data_dir))
-    train_data = dataset["train"]
+    
+    # Check if captions.json exists
+    captions_file = train_data_dir / "captions.json"
+    if not captions_file.exists():
+        raise FileNotFoundError(
+            f"captions.json not found in {train_data_dir}!\n"
+            f"Please run 2A-prepare_corel_dataset.py first to generate captions.json"
+        )
+    
+    # Load dataset with explicit caption loading
+    try:
+        dataset = load_dataset("imagefolder", data_dir=str(train_data_dir))
+        train_data = dataset["train"]
+    except Exception as e:
+        print(f"Error loading dataset: {e}")
+        raise
     
     # Limit samples if specified
     if max_samples is not None:
@@ -307,9 +323,44 @@ Examples:
     else:
         print(f"  Using all {len(train_data)} samples")
     
-    # Preprocessing
+    # Check dataset structure
     dataset_columns = list(train_data.features.keys())
-    image_column, caption_column = dataset_columns[0], dataset_columns[1]
+    print(f"  Dataset columns: {dataset_columns}")
+    
+    # Handle caption column - imagefolder should auto-detect captions.json
+    if len(dataset_columns) < 2:
+        # Captions not automatically loaded, load manually
+        print("  Warning: Captions not automatically detected, loading manually from captions.json...")
+        
+        with open(captions_file, 'r') as f:
+            captions_dict = json.load(f)
+        
+        # Get list of image files in directory (sorted to match dataset order)
+        image_files = sorted(train_data_dir.glob("*.png")) + sorted(train_data_dir.glob("*.jpg")) + sorted(train_data_dir.glob("*.jpeg"))
+        
+        # Add captions to dataset using index-based matching
+        def add_captions(example, idx):
+            # Match by index position in sorted file list
+            if idx < len(image_files):
+                image_file = image_files[idx]
+                image_name = image_file.name
+                caption = captions_dict.get(image_name, "a photo")
+            else:
+                caption = "a photo"
+            
+            return {"text": caption}
+        
+        train_data = train_data.map(add_captions, with_indices=True)
+        dataset_columns = list(train_data.features.keys())
+        print(f"  Dataset columns after adding captions: {dataset_columns}")
+        print(f"  Loaded {len(captions_dict)} captions from captions.json")
+    
+    # Get column names
+    image_column = dataset_columns[0]
+    caption_column = dataset_columns[1] if len(dataset_columns) > 1 else "text"
+    
+    print(f"  Using image column: '{image_column}'")
+    print(f"  Using caption column: '{caption_column}'")
     
     def tokenize_captions(examples, is_train=True):
         captions = []
