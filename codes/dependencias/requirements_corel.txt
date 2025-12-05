@@ -1,0 +1,28 @@
+# Requirements for Corel LoRA Training and Generation
+# Install with: pip install -r requirements_corel.txt
+
+# Core PyTorch
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# Hugging Face libraries
+transformers>=4.30.0
+diffusers>=0.21.0
+accelerate>=0.20.0
+datasets>=2.12.0
+peft>=0.4.0
+
+# Optimization (optional but recommended)
+bitsandbytes>=0.41.0
+
+# Utilities
+tqdm>=4.65.0
+Pillow>=9.5.0
+numpy>=1.24.0
+
+# For Jupyter notebook
+jupyter>=1.0.0
+matplotlib>=3.7.0
+ipywidgets>=8.0.0
+
