@@ -659,13 +659,20 @@ Examples:
         # Save best model
         if avg_loss < best_loss:
             best_loss = avg_loss
+            # Save config as dict to avoid pickle issues when loading from different modules
+            config_dict = {
+                'image_size': config.image_size,
+                'image_channels': config.image_channels,
+                'latent_dim': config.latent_dim,
+                'hidden_dims': config.hidden_dims,
+            }
             torch.save({
                 'epoch': epoch + 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'loss': avg_loss,
                 'losses': losses,
-                'config': config,
+                'config': config_dict,  # Save as dict instead of class
             }, Path(config.output_dir) / 'best_model.pt')
             print(f"  ✓ Saved best model")
         
@@ -677,13 +684,20 @@ Examples:
         
         # Periodic checkpoint
         if (epoch + 1) % config.save_every == 0:
+            # Save config as dict to avoid pickle issues when loading from different modules
+            config_dict = {
+                'image_size': config.image_size,
+                'image_channels': config.image_channels,
+                'latent_dim': config.latent_dim,
+                'hidden_dims': config.hidden_dims,
+            }
             torch.save({
                 'epoch': epoch + 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'loss': avg_loss,
                 'losses': losses,
-                'config': config,
+                'config': config_dict,  # Save as dict instead of class
             }, Path(config.output_dir) / f'checkpoint_{epoch+1:04d}.pt')
         
         # GPU memory info

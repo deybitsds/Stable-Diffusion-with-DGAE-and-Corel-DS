@@ -1,0 +1,73 @@
+\usepackage[portuguese, es-ucroman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage[inner=3.0cm,outer=2.5cm,top=3cm,bottom=3cm]{geometry}%margen 2.54
+\usepackage{hlundef}
+\usepackage{tesis}
+\usepackage[printonlyused]{acronym}
+\usepackage{breakcites}
+\usepackage{color,soul}
+\usepackage{ae}
+\usepackage[usenames,dvipsnames,table,xcdraw]{xcolor}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage[inline]{enumitem}
+\usepackage{tikz,pgfplots,pgfplotstable}
+\usepackage{capt-of}
+\usepackage{csvsimple}
+\usepackage[breaklinks]{hyperref}
+\setlength{\parindent}{1.27cm}
+\usepackage[acronym]{glossaries} % paquete de acrónimos
+\usepackage{caption}
+%\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{mathrsfs}
+\newtheorem{proposicion}{Proposición}[section]
+\usepackage{amsfonts}
+\usepackage{etoolbox}
+\usepackage[group-separator={,}]{siunitx}
+\usepackage{graphicx} 
+\usepackage{adjustbox} % también para rotar
+\usepackage{array} % Para definir ancho tabla
+\usepackage{booktabs}
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+\setcounter{secnumdepth}{3}
+\pgfplotsset{compat=1.13}
+\usepgfplotslibrary{colormaps}
+\usepackage{sidecap}
+\sidecaptionvpos{figure}{b}
+\sidecaptionvpos{table}{b}
+\usepackage{natbib}
+\setcitestyle{round}
+\usepackage{tikz-qtree}
+\usepackage{arydshln}
+\usetikzlibrary{shapes.geometric, arrows, decorations.pathreplacing, shadows,trees, positioning, calc, tikzmark, spy, mindmap, matrix}
+\tikzstyle{roundedFrame} = [rectangle, text centered, rounded corners, draw=gray]
+\tikzstyle{input} = [rectangle,text centered, draw=none]
+\tikzstyle{emptyFrame} = [rectangle,text centered, draw=white]
+\tikzstyle{frame} = [rectangle, text centered, draw=gray]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+\usepackage{pifont} % DING
+% código para sacar el encabezado de chapter
+\usepackage[T1]{fontenc}
+\usepackage{titlesec, blindtext, color}
+\definecolor{gray75}{gray}{0.75}
+\newcommand{\hsp}{\hspace{20pt}}
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{|}\hsp}{0pt}{\Huge\bfseries}
+% Nuevos comandos para diagrama de gantt
+% A package which allows simple repetition counts and some useful commands
+\usepackage{forloop}
+\newcounter{loopcntr}
+\newcommand{\rpt}[2][1]{%
+  \forloop{loopcntr}{0}{\value{loopcntr}<#1}{#2}%
+}
+\newcommand{\on}[1][1]{
+  \forloop{loopcntr}{0}{\value{loopcntr}<#1}{&\cellcolor{gray75}}
+}
+\newcommand{\off}[1][1]{
+  \forloop{loopcntr}{0}{\value{loopcntr}<#1}{&}
+}
+\usepackage[nottoc]{tocbibind}

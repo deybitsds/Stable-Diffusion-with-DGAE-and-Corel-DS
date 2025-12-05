@@ -144,18 +144,93 @@ def load_vae_components(vae_checkpoint_path, device):
     """Load pre-trained VAE encoder and decoder from checkpoint"""
     print(f"Loading VAE from: {vae_checkpoint_path}")
     
-    # Load checkpoint with weights_only=False to allow Config objects
-    # This is safe since we created the checkpoint ourselves
-    checkpoint = torch.load(vae_checkpoint_path, map_location=device, weights_only=False)
     vae_config = VAEConfig()
     
+    # Add VAEConfig to safe globals to allow loading Config objects
+    # This handles the case where checkpoint was saved with Config from 3A
+    import torch.serialization
+    
+    # Register VAEConfig as a safe global (it's the same structure as Config)
+    try:
+        torch.serialization.add_safe_globals([VAEConfig])
+    except:
+        pass  # May already be registered or not available in this PyTorch version
+    
+    # Load checkpoint
+    try:
+        checkpoint = torch.load(vae_checkpoint_path, map_location=device, weights_only=False)
+    except AttributeError as e:
+        # Config class issue - try to use custom unpickler
+        print(f"⚠ Warning: Config class issue detected: {e}")
+        print("  Using custom unpickler to handle Config class...")
+        import pickle
+        
+        class ConfigUnpickler(pickle.Unpickler):
+            def find_class(self, module, name):
+                # Map Config from __main__ to our VAEConfig
+                if module == '__main__' and name == 'Config':
+                    return VAEConfig
+                return super().find_class(module, name)
+        
+        with open(vae_checkpoint_path, 'rb') as f:
+            unpickler = ConfigUnpickler(f)
+            checkpoint = unpickler.load()
+    
+    # Ensure we have model_state_dict
+    if 'model_state_dict' not in checkpoint:
+        raise RuntimeError("Checkpoint does not contain 'model_state_dict'. Checkpoint may be corrupted.")
+    
+    state_dict = checkpoint['model_state_dict']
+    
     # Try to get config from checkpoint
+    config_loaded = False
     if 'config' in checkpoint:
-        saved_config = checkpoint['config']
-        vae_config.latent_dim = saved_config.latent_dim
-        vae_config.image_size = saved_config.image_size
-        vae_config.image_channels = saved_config.image_channels
-        vae_config.hidden_dims = saved_config.hidden_dims
+        try:
+            saved_config = checkpoint['config']
+            # Handle both dict and class objects
+            # Check if it's a dict first (most common case for new checkpoints)
+            if isinstance(saved_config, dict):
+                # New format: config saved as dict
+                if 'latent_dim' in saved_config:
+                    vae_config.latent_dim = saved_config['latent_dim']
+                    config_loaded = True
+                if 'image_size' in saved_config:
+                    vae_config.image_size = saved_config['image_size']
+                if 'image_channels' in saved_config:
+                    vae_config.image_channels = saved_config['image_channels']
+                if 'hidden_dims' in saved_config:
+                    vae_config.hidden_dims = saved_config['hidden_dims']
+            else:
+                # Old format: config saved as class object
+                # Use getattr with try-except to safely access attributes
+                try:
+                    if hasattr(saved_config, 'latent_dim'):
+                        vae_config.latent_dim = getattr(saved_config, 'latent_dim')
+                        config_loaded = True
+                    if hasattr(saved_config, 'image_size'):
+                        vae_config.image_size = getattr(saved_config, 'image_size')
+                    if hasattr(saved_config, 'image_channels'):
+                        vae_config.image_channels = getattr(saved_config, 'image_channels')
+                    if hasattr(saved_config, 'hidden_dims'):
+                        vae_config.hidden_dims = getattr(saved_config, 'hidden_dims')
+                except AttributeError:
+                    pass
+            
+            if config_loaded:
+                print(f"✓ Loaded config from checkpoint")
+        except (AttributeError, TypeError, KeyError) as e:
+            print(f"⚠ Warning: Could not access config object: {e}")
+            print(f"  Error details: {type(e).__name__}: {e}")
+    
+    # Infer config from state dict if not already loaded
+    if not config_loaded:
+        print("  Inferring config from model structure...")
+        for key in state_dict.keys():
+            if 'encoder.fc_mu.weight' in key:
+                inferred_latent_dim = state_dict[key].shape[0]
+                vae_config.latent_dim = inferred_latent_dim
+                print(f"  Inferred latent_dim: {inferred_latent_dim}")
+                break
     
     encoder = Encoder(vae_config).to(device)
     decoder = Decoder(vae_config).to(device)

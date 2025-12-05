@@ -1,0 +1,72 @@
+\UseRawInputEncoding
+\documentclass[a4paper,openany,12pt]{book}
+\input{content/includes}
+% Para definir ancho tabla
+\newcolumntype{L}{>{\centering\arraybackslash}m{4cm}} 
+\usepackage[caption=false]{subfig}
+%\input{colors.tex}
+\usepackage{dsfont}
+\usepackage{gantt}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{xcolor} % Necesario para los colores del código
+\usepackage{listings} % El paquete para mostrar código
+\newtheorem{defn}{Definition}[section]
+\pagenumbering{Roman}
+
+\title{titulo}
+\orientador{Dr. Alexandre Xavier Falcão}
+
+
+\coorientador{Dr./M.Cs./Ing. NOMBRE DEL CO-ASESOR (de ser el caso)}
+\author{David Fernando Prieto Cardoso}
+
+
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compone la carátula, el resumen y abreviaturas de ser el caso
+\maketitle
+% \include{contenido/abreviaturas.tex}
+% \input{contenido/resumen} %Inserta el resumen
+
+%%%%%%%%%%%%%%%%%%%%%%%%% list of content %%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents %Inserta el índice general
+\listoftables %Inserta el índice de cuadros
+\listoffigures %Inserta el índice de figuras
+
+\setlength{\tabcolsep}{6pt} % Default value: 6pt Horizontal spacing
+\renewcommand{\arraystretch}{1}% Default value: 1 Vertical spacing
+\clearpage
+\pagenumbering{arabic}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\input{content/1.introduction}
+\input{content/2.motivation}
+\input{content/3.methodology}
+\input{content/4.results}
+\input{content/5.discussion}
+\input{content/6.conclussion}
+
+% ANEXOS
+\input{content/7.anexos}
+
+% BIBLIOGRAFIA
+\input{content/biblio}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+\end{document}

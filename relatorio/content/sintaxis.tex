@@ -1,0 +1,72 @@
+
+
+% SECTION NORMAL -> CON REFERENCIAS Y DEMAS
+\section{BYOL}
+A Figura \ref{fig:umap_byol} apresenta a projeção dos features do BYOL. Observa-se uma melhora na agregação em comparação com o Autoencoder, com algumas classes começando a formar regiões mais coerentes. No entanto, a sobreposição entre vários clusters ainda é significativa.
+
+% IMAGEN NORMAL 
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/um_byol.png}
+    \caption{Projeção UMAP dos features do BYOL.}
+    \label{fig:umap_byol}
+\end{figure}
+
+
+% TABLA 
+
+\begin{table}[h]
+\centering
+\caption{Modelos segundo a Qualidade de Clustering Visual Subjetiva}
+\label{tab:ranking}
+\begin{tabular}{|c|l|l|l|}
+\hline
+\textbf{Posição} & \textbf{Modelo} & \textbf{Qualidade do Clustering} & \textbf{Ponto Forte do Algoritmo} \\ \hline
+1º & DINO & Excepcional & Auto-destilação + Multi-crop \\ \hline
+2º & SimCLR & Muito Boa & Aprendizado Contrastivo \\ \hline
+3º & BYOL & Regular a Boa & Predição sem Pares Negativos \\ \hline
+4º & Autoencoder & Deficiente & Aprendizado por Reconstrução \\ \hline
+\end{tabular}
+\end{table}
+
+
+% PSEUDOCODIGO
+
+\begin{algorithm}[H]
+    \caption{Salvamento do Melhor Modelo (Checkpointing)}
+    \label{algo:checkpointing}
+    \SetAlgoLined
+    \KwIn{Modelo, Carregador de dados de validação}
+    \KwOut{Melhor modelo salvo em disco}
+    \BlankLine
+    Inicializar $best\_val\_loss \leftarrow \infty$\;
+    \For{cada época no intervalo de treinamento}{
+        Treinar o modelo por uma época\;
+        Calcular $avg\_val\_loss$ no conjunto de validação\;
+        \If{$avg\_val\_loss < best\_val\_loss$}{
+            $best\_val\_loss \leftarrow avg\_val\_loss$\;
+            Salvar os pesos do modelo atual em um arquivo\;
+        }
+    }
+\end{algorithm}
+
+
+% IMAGEN DOBLE
+
+\begin{figure}
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/um_dino.png}
+        \caption{Projeção UMAP de DINO Multi-Crop.}
+        \label{fig:umap_dino_mc}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/um_dino_normal.png}
+        \caption{Projeção UMAP de DINO Clássico.}
+        \label{fig:umap_dino_classic}
+    \end{minipage}
+\end{figure}
