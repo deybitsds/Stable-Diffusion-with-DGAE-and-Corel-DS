@@ -1,0 +1,6 @@
+1 royalguard
+2 beach
+3 mountain
+4 flower
+5 building
+6 animal
