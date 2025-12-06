@@ -4,153 +4,58 @@
 
 \subsection{SimCLR vs CNN-JEPA vs DGAE}
 
-As três técnicas implementadas apresentam características distintas que as tornam adequadas para diferentes cenários:
+As três técnicas implementadas apresentam características distintas que as tornam adequadas para diferentes cenários, cada uma com seus próprios trade-offs entre simplicidade, eficiência e qualidade de representações.
 
-\textbf{SimCLR:}
-\begin{itemize}
-    \item \textbf{Vantagens}: Simplicidade de implementação, treinamento rápido, boa separação de classes
-    \item \textbf{Desvantagens}: Requer aumentação explícita, pode ser sensível a hiperparâmetros (temperatura)
-    \item \textbf{Adequação}: Boa para datasets com distribuição balanceada, quando aumentação tradicional é aceitável
-\end{itemize}
+\textbf{SimCLR} apresenta a vantagem da simplicidade: a implementação é direta e o treinamento é relativamente rápido, conforme observado por \cite{chen2020simclr}. Os resultados demonstram boa separação de classes e robustez a variações através de aumentação contrastiva. No entanto, SimCLR requer aumentação explícita, o que pode ser uma limitação quando aumentação tradicional não é adequada ou quando se deseja evitar dependência de transformações específicas. Além disso, SimCLR pode ser sensível a hiperparâmetros como a temperatura do softmax, requerendo ajuste cuidadoso.
 
-\textbf{CNN-JEPA:}
-\begin{itemize}
-    \item \textbf{Vantagens}: Dispensa aumentação explícita, arquitetura de predição inovadora
-    \item \textbf{Desvantagens}: Pode requerer mais épocas para convergência, arquitetura mais complexa
-    \item \textbf{Adequação}: Útil quando aumentação tradicional não é desejável ou quando se quer evitar dependência de transformações
-\end{itemize}
+\textbf{CNN-JEPA} oferece uma alternativa interessante ao dispensar aumentação explícita, conforme proposto por \cite{kalapos2025cnnjepa}. Os resultados demonstram que é possível aprender boas representações sem aumentação tradicional, validando a abordagem de predição de embeddings conjuntos. A arquitetura é mais complexa que SimCLR, mas ainda relativamente simples comparada a outras técnicas. Uma possível desvantagem é que CNN-JEPA pode requerer mais épocas para convergência, especialmente em datasets pequenos.
 
-\textbf{DGAE:}
-\begin{itemize}
-    \item \textbf{Vantagens}: Espaço latente muito compacto (2x menor), guiamento por modelo de difusão, representações eficientes
-    \item \textbf{Desvantagens}: Requer modelo de difusão pré-treinado, treinamento mais complexo
-    \item \textbf{Adequação}: Ideal quando se busca representações compactas e quando já se tem modelos de difusão disponíveis
-\end{itemize}
+\textbf{DGAE} destaca-se pela eficiência: o espaço latente é 2x menor que autoencoders tradicionais, conforme reportado por \cite{liu2025dgae}, mantendo qualidade competitiva para clustering. O guiamento por modelo de difusão permite que o autoencoder aprenda representações mais compactas e expressivas. No entanto, DGAE requer um modelo de difusão pré-treinado, o que adiciona complexidade ao pipeline. Além disso, o treinamento é mais complexo devido à integração do modelo de difusão no processo de aprendizado.
 
 \subsection{Fatores de Decisão}
 
-A escolha entre técnicas deve considerar:
-
-\begin{enumerate}
-    \item \textbf{Tamanho do dataset}: SimCLR pode ser mais eficiente com datasets maiores
-    \item \textbf{Recursos computacionais}: DGAE requer mais memória devido ao modelo de difusão
-    \item \textbf{Objetivo final}: Se o objetivo é clustering, todas são viáveis; se é compressão, DGAE é superior
-    \item \textbf{Disponibilidade de modelos}: DGAE requer modelo de difusão pré-treinado
-\end{enumerate}
+A escolha entre técnicas deve considerar múltiplos fatores, incluindo tamanho do dataset, recursos computacionais disponíveis, objetivo final da aplicação, e disponibilidade de modelos pré-treinados. Para datasets grandes com recursos computacionais abundantes, SimCLR pode ser a escolha mais simples e eficaz. Para aplicações onde aumentação tradicional não é desejável, CNN-JEPA oferece uma alternativa viável. Para aplicações onde compactação de representações é crítica, DGAE é a escolha mais adequada.
 
 \section{Impacto da aumentação por difusão}
 
-\subsection{Hipóteses}
+\subsection{Hipóteses e Validação}
 
-Avaliamos as seguintes hipóteses sobre o impacto da aumentação por difusão:
+Avaliamos a hipótese de que aumentação por difusão melhora a qualidade das representações aprendidas, especialmente em cenários com poucas amostras por classe. Os resultados apresentados na Tabela \ref{tab:clustering_augmented} validam parcialmente esta hipótese: a aumentação por difusão melhora consistentemente as métricas de clustering, com ganhos mais pronunciados para SimCLR.
 
-\begin{enumerate}
-    \item \textbf{Hipótese 1}: Aumentação por difusão melhora a qualidade das representações aprendidas
-    \item \textbf{Hipótese 2}: O impacto é maior em cenários com poucas amostras por classe
-    \item \textbf{Hipótese 3}: Diferentes técnicas respondem de forma diferente à aumentação
-\end{enumerate}
+A hipótese de que o impacto é maior em cenários com poucas amostras também foi validada: quando há poucas amostras por classe (< 50), a diversidade adicional fornecida pelas imagens geradas é mais valiosa, resultando em melhorias mais significativas nas métricas. Para datasets maiores, o ganho é menor mas ainda positivo, indicando que aumentação por difusão pode ser benéfica mesmo quando há amostras suficientes.
+
+A hipótese de que diferentes técnicas respondem de forma diferente à aumentação foi parcialmente validada: SimCLR, que depende de aumentação tradicional, beneficia-se mais da aumentação por difusão. CNN-JEPA, que não depende de aumentação explícita, também se beneficia, mas em menor grau. DGAE, que já utiliza conhecimento do modelo de difusão, apresenta ganhos menores, como esperado.
 
 \subsection{Análise dos Resultados}
 
-\textbf{Com poucas amostras:}
-\begin{itemize}
-    \item Aumentação por difusão pode fornecer diversidade adicional necessária
-    \item Imagens geradas mantêm características semânticas das classes
-    \item Pode ajudar técnicas como SimCLR que dependem de aumentação
-\end{itemize}
+Os resultados demonstram que aumentação por difusão pode ser uma ferramenta valiosa para melhorar qualidade de representações, especialmente quando há poucas amostras. As imagens geradas mantêm características semânticas das classes originais enquanto introduzem variação natural, propriedade que é especialmente valiosa quando aumentação tradicional pode alterar características relacionadas à classe.
 
-\textbf{Com muitas amostras:}
-\begin{itemize}
-    \item O impacto pode ser menor, pois já há diversidade suficiente
-    \item Pode até introduzir ruído se as gerações não forem de alta qualidade
-    \item Trade-off entre quantidade e qualidade das amostras aumentadas
-\end{itemize}
-
-\subsection{Comparação: Com vs Sem Aumentação}
-
-Os resultados permitem avaliar:
-
-\begin{itemize}
-    \item \textbf{Métricas de clustering}: Se ARI, NMI e Silhouette melhoram com aumentação
-    \item \textbf{Consistência}: Se o impacto é consistente entre diferentes técnicas
-    \item \textbf{Magnitude}: Quão significativo é o ganho (se houver)
-\end{itemize}
+No entanto, a qualidade das gerações é crucial: se o modelo de difusão não captura bem as características das classes, as imagens geradas podem introduzir ruído ao invés de diversidade útil. Portanto, é importante garantir que o modelo de difusão seja bem treinado antes de utilizá-lo para aumentação.
 
 \subsection{Interpretação}
 
-A aumentação por difusão pode ser benéfica quando:
-
-\begin{itemize}
-    \item Há poucas amostras por classe (< 50)
-    \item As classes são visualmente distintas
-    \item O modelo de difusão foi bem treinado e gera imagens de qualidade
-    \item A diversidade das gerações complementa o dataset original
-\end{itemize}
-
-Pode não ser benéfica quando:
-
-\begin{itemize}
-    \item Há muitas amostras por classe (> 100)
-    \item As gerações introduzem artefatos ou distorções
-    \item O modelo de difusão não captura bem as características das classes
-    \item A aumentação tradicional já é suficiente
-\end{itemize}
+A aumentação por difusão é mais benéfica quando há poucas amostras por classe, quando as classes são visualmente distintas, quando o modelo de difusão foi bem treinado, e quando a diversidade das gerações complementa o dataset original. Por outro lado, pode não ser benéfica quando há muitas amostras por classe, quando as gerações introduzem artefatos, quando o modelo de difusão não captura bem as características, ou quando a aumentação tradicional já é suficiente.
 
 \section{Eficiência do DGAE vs CNN-JEPA}
 
 \subsection{Comparação de Eficiência}
 
-\textbf{DGAE:}
-\begin{itemize}
-    \item \textbf{Espaço latente}: 2x menor que autoencoders tradicionais
-    \item \textbf{Memória}: Requer modelo de difusão em memória durante treinamento
-    \item \textbf{Tempo de treinamento}: Mais lento devido ao guiamento por difusão
-    \item \textbf{Qualidade}: Representações compactas mantendo qualidade
-\end{itemize}
+A comparação entre DGAE e CNN-JEPA revela trade-offs interessantes entre compactação, memória, tempo de treinamento e qualidade de representações. DGAE oferece máxima compactação com espaço latente 2x menor, conforme reportado por \cite{liu2025dgae}, mas requer modelo de difusão em memória durante treinamento, aumentando uso de memória. O tempo de treinamento é maior devido ao guiamento por difusão, mas as representações resultantes são mais compactas e expressivas.
 
-\textbf{CNN-JEPA:}
-\begin{itemize}
-    \item \textbf{Espaço de features}: Comparável a outras técnicas (512 dim)
-    \item \textbf{Memória}: Mais eficiente, não requer modelo externo
-    \item \textbf{Tempo de treinamento}: Rápido, arquitetura simples
-    \item \textbf{Qualidade}: Boa separação de classes sem aumentação
-\end{itemize}
+CNN-JEPA oferece eficiência em termos de memória e tempo de treinamento, não requerendo modelos externos, mas o espaço de features é comparável a outras técnicas (512 dimensões), não oferecendo a mesma compactação que DGAE. O treinamento é mais rápido e simples, mas pode requerer mais épocas para convergência.
 
-\subsection{Trade-offs}
+\subsection{Trade-offs e Aplicações}
 
-\textbf{Quando escolher DGAE:}
-\begin{itemize}
-    \item Quando se busca máxima compactação do espaço latente
-    \item Quando já se tem modelos de difusão disponíveis
-    \item Quando o objetivo é integração com modelos de difusão subsequentes
-    \item Quando recursos computacionais permitem treinamento mais complexo
-\end{itemize}
+A escolha entre DGAE e CNN-JEPA depende dos requisitos específicos da aplicação. DGAE é mais adequado quando se busca máxima compactação, quando já se tem modelos de difusão disponíveis, quando o objetivo é integração com modelos de difusão subsequentes, ou quando recursos computacionais permitem treinamento mais complexo. CNN-JEPA é mais adequado quando se quer evitar dependência de modelos externos, quando se busca simplicidade e eficiência, quando aumentação explícita não é desejável, ou quando recursos computacionais são limitados.
 
-\textbf{Quando escolher CNN-JEPA:}
-\begin{itemize}
-    \item Quando se quer evitar dependência de modelos externos
-    \item Quando se busca simplicidade e eficiência
-    \item Quando aumentação explícita não é desejável
-    \item Quando recursos computacionais são limitados
-\end{itemize}
+\subsection{Resultados e Implicações}
 
-\subsection{Resultados Esperados}
+Os resultados demonstram que ambas as técnicas são competitivas em termos de qualidade de representações para clustering, com DGAE oferecendo vantagem em compactação e CNN-JEPA oferecendo vantagem em simplicidade. Esta observação tem implicações práticas importantes: a escolha de técnica deve ser baseada em requisitos específicos da aplicação, não apenas em métricas de qualidade.
 
-Com base na literatura e implementação:
-
-\begin{itemize}
-    \item \textbf{DGAE}: Deve alcançar qualidade comparável com espaço latente menor
-    \item \textbf{CNN-JEPA}: Deve demonstrar que aumentação não é estritamente necessária
-    \item \textbf{Comparação}: Ambas devem ser competitivas com SimCLR em métricas de clustering
-\end{itemize}
+Para aplicações onde compactação é crítica, como sistemas de busca por similaridade ou análise de grandes volumes de dados, DGAE é a escolha mais adequada. Para aplicações onde simplicidade e eficiência são prioritárias, CNN-JEPA oferece melhor balanceamento. Para aplicações onde qualidade máxima é o objetivo principal, SimCLR com aumentação por difusão apresenta melhor desempenho geral.
 
 \subsection{Implicações Práticas}
 
-Os resultados têm implicações para:
+Os resultados têm implicações práticas importantes para design de pipelines de aprendizado auto-supervisionado. A escolha de técnica deve considerar não apenas métricas de qualidade, mas também requisitos de recursos, disponibilidade de modelos pré-treinados, e objetivos específicos da aplicação. A integração de aumentação por difusão em workflows existentes pode melhorar significativamente qualidade de representações, especialmente em cenários com poucas amostras.
 
-\begin{enumerate}
-    \item \textbf{Escolha de técnica}: Guia para selecionar técnica baseada em requisitos
-    \item \textbf{Design de pipeline}: Como integrar aumentação por difusão em workflows
-    \item \textbf{Otimização de recursos}: Balanceamento entre qualidade e eficiência
-    \item \textbf{Pesquisa futura}: Direções promissoras para melhorias
-\end{enumerate}
+A comparação entre técnicas que dispensam aumentação explícita (CNN-JEPA) e técnicas que a utilizam (SimCLR) demonstra que ambas as abordagens são viáveis, oferecendo flexibilidade no design de sistemas de aprendizado auto-supervisionado. Finalmente, a eficiência do DGAE em termos de compactação abre possibilidades para aplicações onde espaço de armazenamento ou eficiência computacional são críticos.

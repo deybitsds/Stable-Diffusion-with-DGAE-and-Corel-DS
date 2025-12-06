@@ -2,241 +2,155 @@
 
 \section{Descrição da base Corel}
 
-A base de dados Corel utilizada neste trabalho consiste em imagens organizadas em múltiplas classes. Cada imagem segue o formato de nomenclatura \texttt{XXXX\_YYYY.png}, onde \texttt{XXXX} representa o número da classe e \texttt{YYYY} representa o número da amostra dentro da classe.
+A base de dados Corel utilizada neste trabalho consiste em imagens organizadas em múltiplas classes, onde cada imagem segue o formato de nomenclatura \texttt{XXXX\_YYYY.png}, sendo \texttt{XXXX} o número da classe e \texttt{YYYY} o identificador da amostra dentro da classe. Esta estrutura permite uma organização sistemática que facilita tanto o processamento quanto a análise posterior.
 
 \subsection{Características da Base}
 
-\begin{itemize}
-    \item \textbf{Formato}: Imagens PNG em RGB (3 canais)
-    \item \textbf{Organização}: Estrutura hierárquica por classes
-    \item \textbf{Nomenclatura}: \texttt{XXXX\_YYYY.png} (classe\_amostra)
-    \item \textbf{Distribuição}: Distribuição desbalanceada entre classes
-    \item \textbf{Tamanho}: Variável (redimensionadas para tamanhos padronizados durante o processamento)
-\end{itemize}
+A base Corel apresenta características específicas que influenciam diretamente as estratégias de aprendizado auto-supervisionado. As imagens são armazenadas em formato PNG com três canais RGB, permitindo processamento direto sem necessidade de conversão. A organização hierárquica por classes facilita tanto o treinamento por classe quanto o treinamento unificado, dependendo da estratégia escolhida.
+
+A distribuição das amostras entre classes é desbalanceada, o que é comum em datasets reais e representa um desafio adicional para técnicas de aprendizado. Durante o processamento, as imagens são redimensionadas para tamanhos padronizados conforme os requisitos de cada modelo, garantindo consistência no pipeline de treinamento.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figs/corel_dataset_samples.png}
+    \caption{Exemplos de imagens da base Corel organizadas por classe. Cada linha representa uma classe diferente, mostrando a diversidade visual presente no dataset.}
+    \label{fig:corel_samples}
+\end{figure}
 
 \subsection{Preparação dos Dados}
 
-A preparação dos dados foi realizada através do script \texttt{2A-prepare\_corel\_dataset.py}, que:
+A preparação dos dados foi realizada através do script \texttt{2A-prepare\_corel\_dataset.py}, que automatiza todo o processo de organização e metadados. O script realiza uma análise inicial da distribuição de classes baseada na nomenclatura dos arquivos, gerando automaticamente o arquivo \texttt{classes.txt} caso não exista, o qual mapeia números de classe para nomes descritivos.
 
-\begin{enumerate}
-    \item Carrega todas as imagens PNG do diretório de dados
-    \item Analisa a distribuição de classes baseada na nomenclatura dos arquivos
-    \item Gera arquivo \texttt{classes.txt} com mapeamento de classes (se não existir)
-    \item Cria arquivos \texttt{captions.json} para cada classe com descrições textuais
-    \item Organiza os dados em estrutura hierárquica:
-    \begin{itemize}
-        \item \texttt{corel\_all/}: Dataset unificado com todas as classes
-        \item \texttt{class\_XXXX/}: Datasets individuais por classe
-    \end{itemize}
-    \item Gera visualizações do dataset
-\end{enumerate}
+Um aspecto crucial da preparação é a geração de arquivos \texttt{captions.json} para cada classe, contendo descrições textuais que serão utilizadas durante o treinamento de modelos de difusão. Estas descrições são essenciais para o aprendizado de representações textuais que guiam a geração de imagens.
+
+A organização final dos dados segue uma estrutura hierárquica que permite flexibilidade: o diretório \texttt{corel\_all/} contém o dataset unificado com todas as classes, enquanto diretórios \texttt{class\_XXXX/} contêm datasets individuais por classe. Esta estrutura permite avaliar tanto estratégias de treinamento unificado quanto por classe, conforme discutido por \cite{rombach2022high} em relação à adaptação de modelos de difusão.
 
 \section{Implementações dos itens 2, 3 e 4}
 
 \subsection{Item 2: Geração com Modelo Pré-treinado (LoRA)}
 
-O Item 2 envolve a adaptação de modelos pré-treinados de Stable Diffusion para a base Corel usando LoRA (Low-Rank Adaptation).
+O Item 2 envolve a adaptação de modelos pré-treinados de Stable Diffusion para a base Corel usando LoRA (Low-Rank Adaptation), uma técnica eficiente que permite fine-tuning com parâmetros reduzidos \cite{hu2021lora}. Esta abordagem é particularmente adequada para cenários com poucas amostras, pois evita overfitting enquanto mantém a capacidade de adaptação do modelo base.
 
 \subsubsection{Preparação do Dataset (2A)}
 
-O script \texttt{2A-prepare\_corel\_dataset.py} prepara o dataset criando metadados e organizando as imagens em estrutura adequada para treinamento.
+O script \texttt{2A-prepare\_corel\_dataset.py} prepara o dataset criando metadados e organizando as imagens em estrutura adequada para treinamento. Além da organização estrutural, o script gera visualizações que facilitam a compreensão da distribuição e características do dataset, como mostrado na Figura \ref{fig:corel_samples}.
 
 \subsubsection{Treinamento LoRA (2B)}
 
-O script \texttt{2B-train-lora-corel.py} treina um modelo LoRA sobre o Stable Diffusion pré-treinado:
+O script \texttt{2B-train-lora-corel.py} implementa o treinamento de um modelo LoRA sobre o Stable Diffusion pré-treinado \texttt{runwayml/stable-diffusion-v1-5}. A adaptação LoRA é aplicada tanto ao UNet quanto ao Text Encoder, permitindo que o modelo aprenda características específicas da base Corel mantendo os parâmetros do modelo base congelados.
 
-\begin{itemize}
-    \item \textbf{Base model}: \texttt{runwayml/stable-diffusion-v1-5}
-    \item \textbf{Adaptação}: LoRA aplicado ao UNet e Text Encoder
-    \item \textbf{Otimizações}: Mixed precision (FP16), gradient checkpointing, 8-bit Adam
-    \item \textbf{Suporte}: Modelo unificado (todas as classes) ou por classe
-\end{itemize}
+As otimizações implementadas incluem mixed precision (FP16) para reduzir uso de memória e acelerar treinamento, gradient checkpointing para economizar memória durante backpropagation, e suporte para 8-bit Adam optimizer através da biblioteca bitsandbytes. Estas otimizações são essenciais para treinamento eficiente em GPUs, especialmente em ambientes cloud onde recursos são limitados.
+
+O treinamento suporta duas estratégias: modelo unificado (todas as classes) ou modelos por classe. A escolha entre estas estratégias depende do número de amostras por classe e da similaridade visual entre classes, conforme discutido na seção de resultados.
 
 \subsubsection{Geração de Imagens (2C)}
 
-O script \texttt{2C-generate-lora-corel.py} gera imagens usando os pesos LoRA treinados:
+O script \texttt{2C-generate-lora-corel.py} utiliza os pesos LoRA treinados para gerar imagens a partir de prompts textuais. A geração é otimizada para GPU com attention slicing e VAE tiling, técnicas que reduzem significativamente o uso de memória durante a inferência. As imagens geradas são salvas individualmente e organizadas em grids para visualização comparativa, como ilustrado na Figura \ref{fig:lora_generated}.
 
-\begin{itemize}
-    \item Carrega modelo base + LoRA weights
-    \item Gera imagens a partir de prompts textuais
-    \item Suporta múltiplas imagens e criação de grids
-    \item Otimizado para GPU com attention slicing e VAE tiling
-\end{itemize}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figs/corel_lora_generated_grid.png}
+    \caption{Grid de imagens geradas usando modelo LoRA treinado na base Corel. As imagens demonstram características visuais consistentes com o dataset de treinamento.}
+    \label{fig:lora_generated}
+\end{figure}
 
 \subsection{Item 3: Modelo Treinado do Zero}
 
-O Item 3 envolve treinar modelos de difusão do zero especificamente para a base Corel.
+O Item 3 envolve treinar modelos de difusão completamente do zero especificamente para a base Corel, seguindo a arquitetura proposta por \cite{ho2020denoising} e adaptada para espaço latente por \cite{rombach2022high}. Esta abordagem permite maior controle sobre o processo de aprendizado, mas requer mais recursos computacionais e tempo de treinamento.
 
 \subsubsection{Treinamento VAE (3A)}
 
-O script \texttt{3A-train-vae-corel.py} treina um VAE (Variational Autoencoder) do zero:
+O script \texttt{3A-train-vae-corel.py} treina um VAE (Variational Autoencoder) do zero, criando um espaço latente otimizado especificamente para as imagens da base Corel. A arquitetura utiliza blocos residuais no encoder e decoder, permitindo aprendizado de representações hierárquicas eficientes.
 
-\begin{itemize}
-    \item \textbf{Arquitetura}: Encoder-Decoder com blocos residuais
-    \item \textbf{Loss}: Reconstruction + KL divergence + Perceptual loss
-    \item \textbf{Controle KL}: Warmup gradual e target value
-    \item \textbf{Output}: Espaço latente compacto para difusão
-\end{itemize}
+A função de perda combina três componentes: perda de reconstrução (MSE ou L1), divergência KL para regularizar o espaço latente, e perda perceptual para melhorar a qualidade visual das reconstruções. O controle de KL divergence através de warmup gradual permite balancear qualidade de reconstrução e regularização do espaço latente, conforme sugerido por \cite{kingma2013auto}.
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/vae_reconstruction_samples.png}
+        \caption{Exemplos de reconstruções do VAE treinado.}
+        \label{fig:vae_recon}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/vae_training_loss.png}
+        \caption{Evolução da perda durante treinamento do VAE.}
+        \label{fig:vae_loss}
+    \end{minipage}
+\end{figure}
 
 \subsubsection{Treinamento Difusão Latente (3B)}
 
-O script \texttt{3B-train-diffusion-from-scratch-corel.py} treina um modelo de difusão no espaço latente:
+O script \texttt{3B-train-diffusion-from-scratch-corel.py} treina um modelo de difusão no espaço latente do VAE previamente treinado. Esta abordagem, conhecida como Latent Diffusion Model (LDM), é significativamente mais eficiente que treinar diretamente no espaço de pixels, conforme demonstrado por \cite{rombach2022high}.
 
-\begin{itemize}
-    \item \textbf{Input}: Espaço latente do VAE treinado
-    \item \textbf{Arquitetura}: UNet adaptado para latentes
-    \item \textbf{Training}: DDPM scheduler, mixed precision, EMA
-    \item \textbf{Otimizações}: Early stopping, learning rate scheduling
-\end{itemize}
+O modelo utiliza uma arquitetura UNet adaptada para operar em latentes, com atenção cross-attention para incorporar condições textuais. O treinamento utiliza o scheduler DDPM com 1000 timesteps, mixed precision para eficiência, e Exponential Moving Average (EMA) para estabilizar a geração durante inferência.
 
 \subsubsection{Geração de Amostras (3C)}
 
-O script \texttt{3C-generate-samples-corel.py} gera imagens usando o modelo de difusão treinado:
-
-\begin{itemize}
-    \item Decodifica latentes gerados pelo modelo de difusão
-    \item Suporta DDPM e DDIM sampling
-    \item Gera múltiplas amostras com controle de seed
-\end{itemize}
+O script \texttt{3C-generate-samples-corel.py} gera imagens decodificando latentes produzidos pelo modelo de difusão através do decoder VAE. O processo suporta tanto sampling determinístico (DDIM) quanto estocástico (DDPM), permitindo controle sobre o trade-off entre qualidade e diversidade das amostras geradas.
 
 \subsection{Item 4: DGAE (Diffusion-Guided Autoencoder)}
 
-O Item 4 implementa DGAE para aprender representações latentes para agrupamento.
+O Item 4 implementa a abordagem DGAE proposta por \cite{liu2025dgae}, que utiliza um modelo de difusão pré-treinado para guiar o decoder de um autoencoder convolucional. Diferentemente da aumentação de dados, o objetivo aqui é melhorar diretamente a representação latente aprendida pelo autoencoder para fins de agrupamento.
 
 \subsubsection{Treinamento DGAE (4A)}
 
-O script \texttt{4A-train-dgae-corel.py} treina um autoencoder guiado por difusão:
+O script \texttt{4A-train-dgae-corel.py} treina um autoencoder onde o decoder é guiado por um modelo de difusão (especificamente, o modelo LoRA treinado no Item 2). A função de perda combina três componentes: perda de reconstrução tradicional, perda perceptual para melhorar qualidade visual, e perda de guiamento por difusão que utiliza o modelo de difusão para refinar as reconstruções.
 
-\begin{itemize}
-    \item \textbf{Encoder}: Compressão de imagens para espaço latente compacto
-    \item \textbf{Decoder}: Reconstrução guiada por modelo de difusão pré-treinado
-    \item \textbf{Guiamento}: Modelo LoRA do Item 2 usado para guiar o decoder
-    \item \textbf{Loss}: Reconstruction + Perceptual + Diffusion guidance
-    \item \textbf{Objetivo}: Aprender características latentes para clustering (não aumentação)
-\end{itemize}
+O guiamento por difusão funciona comparando as predições de ruído do modelo de difusão para imagens originais e reconstruídas, incentivando que as reconstruções produzam predições similares no espaço latente do modelo de difusão. Esta abordagem permite que o autoencoder aprenda representações mais compactas (2x menor que autoencoders tradicionais) mantendo qualidade suficiente para clustering eficaz.
 
 \subsubsection{Extração de Características DGAE (4B)}
 
-O script \texttt{4B-extract-features-corel.py} extrai características latentes:
-
-\begin{itemize}
-    \item Carrega encoder treinado do DGAE
-    \item Extrai features para todas as imagens
-    \item Salva em formato numpy para avaliação de clustering
-    \item Inclui metadados e labels para análise
-\end{itemize}
+O script \texttt{4B-extract-features-corel.py} utiliza o encoder treinado do DGAE para extrair características latentes de todas as imagens do dataset. Estas características são salvas em formato numpy para posterior avaliação de clustering, incluindo metadados e labels para análise comparativa.
 
 \section{Técnicas de extração de características}
 
 \subsection{SimCLR}
 
-SimCLR foi escolhido como a técnica auto-supervisionada para este trabalho devido à sua simplicidade e eficiência computacional.
+SimCLR foi escolhido como técnica auto-supervisionada representativa devido à sua simplicidade e eficiência computacional, conforme proposto por \cite{chen2020simclr}. A escolha de SimCLR sobre outras técnicas como BYOL ou DINO foi motivada pela necessidade de balancear qualidade de representações com tempo de treinamento, especialmente considerando recursos limitados em ambientes cloud.
 
 \subsubsection{Implementação (5A)}
 
-O script \texttt{5A-simclr\_corel.py} implementa SimCLR para a base Corel:
+O script \texttt{5A-simclr\_corel.py} implementa SimCLR adaptado para a base Corel. A arquitetura utiliza um encoder CNN baseado em ResNet com projection head para aprendizado contrastivo. A aumentação inclui transformações como RandomResizedCrop, ColorJitter e RandomHorizontalFlip, criando pares positivos para treinamento.
 
-\begin{itemize}
-    \item \textbf{Arquitetura}: Encoder CNN (ResNet-like) + Projection head
-    \item \textbf{Aumentação}: RandomResizedCrop, ColorJitter, RandomHorizontalFlip
-    \item \textbf{Loss}: InfoNCE (NT-Xent) com temperatura
-    \item \textbf{Training}: Contrastive learning com pares aumentados
-    \item \textbf{Features}: Extração de características do encoder (sem projection head)
-\end{itemize}
-
-\subsubsection{Parâmetros de Treinamento}
-
-\begin{itemize}
-    \item Image size: 224x224
-    \item Latent dimension: 128
-    \item Learning rate: 3e-3
-    \item Temperature: 0.5
-    \item Batch size: 32
-    \item Epochs: 100
-\end{itemize}
+A perda InfoNCE (também conhecida como NT-Xent) é utilizada para maximizar similaridade entre pares aumentados da mesma imagem enquanto minimiza similaridade com outras imagens no batch. A temperatura do softmax (0.5) controla a concentração das representações no espaço de features.
 
 \subsection{CNN-JEPA}
 
-CNN-JEPA implementa uma arquitetura de predição de embeddings conjuntos sem aumentação explícita.
+CNN-JEPA implementa uma arquitetura de predição de embeddings conjuntos sem aumentação explícita, conforme proposto por \cite{kalapos2025cnnjepa}. Esta técnica é particularmente interessante pois demonstra que é possível aprender boas representações sem depender de transformações de aumentação tradicionais.
 
 \subsubsection{Implementação (5D)}
 
-O script \texttt{5D-cnn-jepa\_corel.py} implementa CNN-JEPA:
+O script \texttt{5D-cnn-jepa\_corel.py} implementa CNN-JEPA com encoder CNN e rede preditora. O modelo aprende a prever embeddings de uma vista da imagem (target) a partir de outra vista (context), utilizando apenas duas vistas diferentes da mesma imagem sem transformações explícitas de aumentação.
 
-\begin{itemize}
-    \item \textbf{Arquitetura}: Encoder CNN + Predictor network
-    \item \textbf{Vistas}: Duas vistas diferentes da mesma imagem (context e target)
-    \item \textbf{Loss}: Cosine similarity entre embedding predito e target
-    \item \textbf{Training}: Predição de embeddings de uma vista a partir de outra
-    \item \textbf{Features}: Extração de características do encoder
-\end{itemize}
-
-\subsubsection{Parâmetros de Treinamento}
-
-\begin{itemize}
-    \item Image size: 224x224
-    \item Feature dimension: 512
-    \item Hidden dimension: 512
-    \item Learning rate: 1e-3
-    \item Batch size: 32
-    \item Epochs: 100
-\end{itemize}
+A perda utiliza similaridade cosseno entre o embedding predito e o embedding target, incentivando que o preditor aprenda representações úteis que capturem informações compartilhadas entre diferentes vistas da mesma imagem.
 
 \subsection{DGAE}
 
-DGAE utiliza um modelo de difusão pré-treinado para guiar o decoder de um autoencoder.
+DGAE utiliza um modelo de difusão pré-treinado para guiar o decoder de um autoencoder, conforme detalhado por \cite{liu2025dgae}. As características principais incluem espaço latente 2x menor que autoencoders tradicionais, mantendo qualidade suficiente para clustering eficaz.
 
 \subsubsection{Características Principais}
 
-\begin{itemize}
-    \item \textbf{Espaço latente}: 2x menor que autoencoders tradicionais
-    \item \textbf{Guiamento}: Modelo de difusão (LoRA) usado para melhorar reconstrução
-    \item \textbf{Objetivo}: Aprendizado de características latentes para clustering
-    \item \textbf{Vantagem}: Representações mais compactas e expressivas
-\end{itemize}
+O DGAE integra o modelo de difusão (LoRA do Item 2) diretamente no processo de treinamento do autoencoder. O guiamento por difusão ajuda o decoder a recuperar sinais informativos que não são completamente decodificados a partir da representação latente, resultando em representações mais compactas e expressivas.
 
-\subsubsection{Integração com Item 2}
-
-O DGAE utiliza o modelo LoRA treinado no Item 2 como guia para o decoder, demonstrando como modelos de difusão podem melhorar diretamente a qualidade das representações latentes.
+Esta abordagem é particularmente eficiente pois aproveita conhecimento pré-treinado do modelo de difusão sem requerer treinamento adicional extensivo. O espaço latente reduzido facilita tanto o armazenamento quanto a análise posterior através de técnicas de clustering.
 
 \section{Avaliação de Agrupamento}
 
 \subsection{Métricas Utilizadas}
 
-Para avaliar a qualidade do agrupamento, utilizamos as seguintes métricas:
+Para avaliar a qualidade do agrupamento, foram utilizadas múltiplas métricas que capturam diferentes aspectos da qualidade de clustering. O K-means foi aplicado com número de clusters igual ao número de classes verdadeiras, e as métricas foram calculadas comparando clusters obtidos com labels verdadeiras.
+
+As métricas principais incluem:
 
 \begin{itemize}
-    \item \textbf{ARI (Adjusted Rand Index)}: Mede a concordância entre labels verdadeiros e clusters, variando de -1 a 1 (maior é melhor)
-    \item \textbf{NMI (Normalized Mutual Information)}: Mede a informação mútua entre labels e clusters, variando de 0 a 1 (maior é melhor)
-    \item \textbf{Silhouette Score}: Mede quão similares são objetos ao seu próprio cluster vs outros clusters, variando de -1 a 1 (maior é melhor)
-    \item \textbf{Homogeneity}: Mede se cada cluster contém apenas membros de uma única classe
-    \item \textbf{Completeness}: Mede se todos os membros de uma classe estão no mesmo cluster
-    \item \textbf{V-measure}: Média harmônica de homogeneity e completeness
+    \item \textbf{ARI (Adjusted Rand Index)}: Mede concordância entre clusters e classes verdadeiras, variando de -1 a 1, onde valores maiores indicam melhor agrupamento.
+    \item \textbf{NMI (Normalized Mutual Information)}: Mede informação mútua normalizada entre labels e clusters, variando de 0 a 1.
+    \item \textbf{Silhouette Score}: Mede quão similares são objetos ao seu próprio cluster vs outros clusters, variando de -1 a 1.
+    \item \textbf{Homogeneity, Completeness, V-measure}: Métricas adicionais que avaliam pureza de clusters e completude de classes.
 \end{itemize}
 
 \subsection{Script de Comparação (5E)}
 
-O script \texttt{5E-compare-clustering.py} compara todas as técnicas:
-
-\begin{itemize}
-    \item Carrega features de SimCLR, CNN-JEPA e DGAE
-    \item Realiza clustering K-means com número de clusters igual ao número de classes
-    \item Calcula todas as métricas de agrupamento
-    \item Gera comparação visual e tabelas
-    \item Suporta comparação com e sem aumentação por difusão
-\end{itemize}
-
-\section{Avaliação com e sem Aumentação por Difusão}
-
-Para avaliar o impacto da aumentação por difusão:
-
-\begin{enumerate}
-    \item \textbf{Sem aumentação}: Treinar técnicas auto-supervisionadas diretamente no dataset original Corel
-    \item \textbf{Com aumentação}: 
-    \begin{itemize}
-        \item Gerar imagens usando modelos LoRA (Item 2) ou difusão do zero (Item 3)
-        \item Combinar imagens geradas com dataset original
-        \item Treinar técnicas auto-supervisionadas no dataset aumentado
-        \item Comparar métricas de clustering entre ambos os cenários
-    \end{itemize}
-\end{enumerate}
+O script \texttt{5E-compare-clustering.py} realiza uma comparação abrangente entre todas as técnicas implementadas. O script carrega features extraídas de SimCLR, CNN-JEPA e DGAE, aplica clustering K-means, calcula todas as métricas, e gera visualizações comparativas incluindo projeções UMAP para análise visual das representações aprendidas.

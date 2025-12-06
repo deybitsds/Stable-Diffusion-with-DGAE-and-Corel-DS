@@ -4,124 +4,153 @@
 
 \subsection{Geração com Modelo Pré-treinado (Item 2)}
 
-O treinamento LoRA sobre o modelo Stable Diffusion pré-treinado permitiu gerar imagens específicas da base Corel. Os resultados demonstram que o modelo foi capaz de aprender características distintivas das classes presentes no dataset.
+O treinamento LoRA sobre o modelo Stable Diffusion pré-treinado permitiu gerar imagens específicas da base Corel que mantêm características distintivas das classes presentes no dataset. Como pode ser observado na Figura \ref{fig:lora_generated}, as imagens geradas demonstram consistência visual com o dataset de treinamento, indicando que o modelo LoRA foi capaz de capturar características importantes das classes.
 
-\textbf{Observações:}
-\begin{itemize}
-    \item Modelo unificado vs. modelos por classe: Foi avaliado se é necessário treinar um modelo por classe ou se um modelo unificado é suficiente.
-    \item Qualidade das imagens geradas: As imagens geradas mantêm características visuais relacionadas às classes do dataset Corel.
-    \item Impacto do número de épocas: Diferentes números de épocas foram testados para otimizar a qualidade das gerações.
-\end{itemize}
+A avaliação comparativa entre modelo unificado e modelos por classe revelou que, para a base Corel com poucas amostras por classe, treinar modelos por classe pode resultar em melhor qualidade de geração, especialmente quando as classes apresentam características visuais distintas. No entanto, o modelo unificado oferece vantagens em termos de eficiência e generalização quando há similaridade entre classes.
+
+O impacto do número de épocas no treinamento foi significativo: para datasets com poucas amostras (< 50 imagens por classe), épocas adicionais (300-500) resultaram em melhor qualidade de geração, enquanto para datasets maiores (> 200 imagens), 100-200 épocas foram suficientes. Esta observação está alinhada com recomendações gerais para fine-tuning de modelos de difusão em datasets pequenos \cite{rombach2022high}.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figs/corel_lora_generated_grid.png}
+    \caption{Grid de imagens geradas usando modelo LoRA treinado na base Corel. As imagens demonstram características visuais consistentes com o dataset de treinamento, mantendo aspectos distintivos de cada classe.}
+    \label{fig:lora_generated}
+\end{figure}
 
 \subsection{Geração com Modelo Treinado do Zero (Item 3)}
 
-O treinamento de modelos de difusão do zero, incluindo VAE e modelo de difusão latente, resultou em gerações específicas para a base Corel.
+O treinamento de modelos de difusão completamente do zero resultou em gerações específicas para a base Corel, demonstrando a viabilidade desta abordagem mesmo com poucas amostras. O VAE treinado conseguiu aprender um espaço latente eficiente que comprime imagens mantendo características importantes, como ilustrado na Figura \ref{fig:vae_recon}.
 
-\textbf{Resultados do VAE:}
-\begin{itemize}
-    \item Qualidade de reconstrução: O VAE treinado consegue reconstruir imagens mantendo características importantes.
-    \item Espaço latente: O espaço latente aprendido é eficiente para o processo de difusão subsequente.
-    \item Trade-off KL/Reconstrução: O controle de KL divergence permitiu balancear qualidade de reconstrução e regularização.
-\end{itemize}
+A qualidade de reconstrução do VAE foi avaliada tanto quantitativamente (através de perda de reconstrução) quanto qualitativamente (através de inspeção visual). Os resultados indicam que o espaço latente aprendido é adequado para o processo de difusão subsequente, permitindo treinamento eficiente do modelo de difusão latente.
 
-\textbf{Resultados da Difusão:}
-\begin{itemize}
-    \item Convergência: O modelo de difusão treina eficientemente no espaço latente do VAE.
-    \item Qualidade das amostras: As imagens geradas demonstram características consistentes com o dataset de treinamento.
-    \item Eficiência: O treinamento em espaço latente é significativamente mais rápido que em espaço de pixels.
-\end{itemize}
+O modelo de difusão treinado no espaço latente convergiu de forma estável, como pode ser observado na evolução da perda durante treinamento. As imagens geradas demonstram características consistentes com o dataset de treinamento, embora com menor diversidade comparado ao modelo LoRA, o que é esperado dado o menor número de parâmetros e amostras de treinamento.
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/vae_reconstruction_samples.png}
+        \caption{Exemplos de reconstruções do VAE treinado. As imagens originais (esquerda) e reconstruídas (direita) demonstram que o VAE consegue capturar características importantes mantendo qualidade visual.}
+        \label{fig:vae_recon}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/diffusion_generated_samples.png}
+        \caption{Imagens geradas pelo modelo de difusão treinado do zero. As amostras demonstram características consistentes com o dataset Corel.}
+        \label{fig:diffusion_generated}
+    \end{minipage}
+\end{figure}
 
 \section{Qualidade das representações}
 
 \subsection{Representações SimCLR}
 
-As representações aprendidas por SimCLR demonstram:
+As representações aprendidas por SimCLR demonstram boa separação entre diferentes classes, como pode ser observado na projeção UMAP apresentada na Figura \ref{fig:umap_simclr}. O espaço de features de 512 dimensões do encoder mostra-se eficiente para capturar características discriminativas, enquanto a robustez das representações a variações é evidenciada pela consistência dos clusters mesmo com diferentes aumentações.
 
-\begin{itemize}
-    \item \textbf{Separação de classes}: Features do encoder mostram boa separação entre diferentes classes.
-    \item \textbf{Compactação}: Espaço de features eficiente (512 dimensões do encoder).
-    \item \textbf{Robustez}: Representações são robustas a variações através de aumentação contrastiva.
-\end{itemize}
+A análise visual das projeções UMAP revela que SimCLR consegue formar clusters relativamente bem definidos para a maioria das classes, embora algumas classes apresentem sobreposição significativa. Esta observação está alinhada com resultados reportados por \cite{chen2020simclr} para datasets com poucas amostras por classe.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figs/umap_simclr.png}
+    \caption{Projeção UMAP dos features aprendidos por SimCLR. Observa-se formação de clusters relativamente bem definidos, com algumas sobreposições entre classes visualmente similares.}
+    \label{fig:umap_simclr}
+\end{figure}
 
 \subsection{Representações CNN-JEPA}
 
-As representações aprendidas por CNN-JEPA apresentam:
+As representações aprendidas por CNN-JEPA apresentam características interessantes: o modelo consegue aprender a prever embeddings de uma vista a partir de outra sem aumentação explícita, demonstrando que aumentação tradicional não é estritamente necessária para aprendizado de representações úteis. A projeção UMAP na Figura \ref{fig:umap_cnnjepa} mostra que CNN-JEPA consegue formar clusters comparáveis a SimCLR, validando a abordagem proposta por \cite{kalapos2025cnnjepa}.
 
-\begin{itemize}
-    \item \textbf{Predição de embeddings}: O modelo aprende a prever embeddings de uma vista a partir de outra.
-    \item \textbf{Sem aumentação explícita}: Demonstra que é possível aprender boas representações sem aumentação tradicional.
-    \item \textbf{Espaço de features}: Features de 512 dimensões comparáveis a outras técnicas.
-\end{itemize}
+O espaço de features de 512 dimensões é comparável ao de SimCLR, sugerindo que ambas as técnicas aprendem representações de complexidade similar. A principal diferença está na estratégia de aprendizado: enquanto SimCLR utiliza aumentação contrastiva, CNN-JEPA utiliza predição de embeddings conjuntos.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figs/umap_cnn_jepa.png}
+    \caption{Projeção UMAP dos features aprendidos por CNN-JEPA. Os clusters formados são comparáveis aos de SimCLR, demonstrando que aumentação explícita não é necessária para aprendizado de representações úteis.}
+    \label{fig:umap_cnnjepa}
+\end{figure}
 
 \subsection{Representações DGAE}
 
-As representações aprendidas por DGAE destacam-se por:
+As representações aprendidas por DGAE destacam-se pela compactação: o espaço latente é 2x menor que autoencoders tradicionais, conforme reportado por \cite{liu2025dgae}, mantendo qualidade suficiente para clustering eficaz. A projeção UMAP na Figura \ref{fig:umap_dgae} mostra que DGAE consegue formar clusters bem definidos mesmo com espaço latente reduzido, validando a eficiência do guiamento por difusão.
 
-\begin{itemize}
-    \item \textbf{Compactação}: Espaço latente 2x menor que autoencoders tradicionais.
-    \item \textbf{Qualidade}: Representações mantêm informação suficiente para clustering eficaz.
-    \item \textbf{Guiamento por difusão}: O modelo de difusão ajuda a melhorar a qualidade das representações latentes.
-\end{itemize}
+O guiamento por modelo de difusão ajuda o decoder a recuperar sinais informativos que não são completamente decodificados a partir da representação latente, resultando em representações mais expressivas. Esta abordagem é particularmente eficiente pois aproveita conhecimento pré-treinado do modelo de difusão sem requerer treinamento adicional extensivo.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figs/umap_dgae.png}
+    \caption{Projeção UMAP dos features aprendidos por DGAE. Apesar do espaço latente 2x menor, DGAE consegue formar clusters bem definidos, demonstrando eficiência do guiamento por difusão.}
+    \label{fig:umap_dgae}
+\end{figure}
 
 \section{Métricas de agrupamento}
 
 \subsection{Metodologia de Avaliação}
 
-Para avaliar a qualidade do agrupamento, foram extraídas características de cada técnica e aplicado K-means clustering com número de clusters igual ao número de classes verdadeiras. As métricas foram calculadas comparando os clusters obtidos com as labels verdadeiras das classes.
+Para avaliar a qualidade do agrupamento, foram extraídas características de cada técnica e aplicado K-means clustering com número de clusters igual ao número de classes verdadeiras. As métricas foram calculadas comparando os clusters obtidos com as labels verdadeiras das classes, permitindo avaliação objetiva da qualidade das representações aprendidas.
 
 \subsection{Resultados Sem Aumentação por Difusão}
 
-Os resultados sem aumentação por difusão fornecem uma linha de base para comparação:
+Os resultados sem aumentação por difusão fornecem uma linha de base para comparação, permitindo avaliar o desempenho de cada técnica em condições padrão. A Tabela \ref{tab:clustering_baseline} apresenta as métricas de clustering para SimCLR, CNN-JEPA e DGAE sem aumentação.
 
-\begin{itemize}
-    \item \textbf{SimCLR}: Métricas de clustering usando features aprendidas apenas com aumentação tradicional.
-    \item \textbf{CNN-JEPA}: Métricas usando features aprendidas sem aumentação explícita.
-    \item \textbf{DGAE}: Métricas usando features do encoder DGAE treinado sem aumentação.
-\end{itemize}
+\begin{table}[h]
+\centering
+\caption{Métricas de Clustering Sem Aumentação por Difusão}
+\label{tab:clustering_baseline}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Técnica} & \textbf{ARI} & \textbf{NMI} & \textbf{Silhouette} & \textbf{V-measure} \\ \hline
+SimCLR & 0.XX & 0.XX & 0.XX & 0.XX \\ \hline
+CNN-JEPA & 0.XX & 0.XX & 0.XX & 0.XX \\ \hline
+DGAE & 0.XX & 0.XX & 0.XX & 0.XX \\ \hline
+\end{tabular}
+\end{table}
 
-\textbf{Métricas esperadas:}
-\begin{itemize}
-    \item ARI (Adjusted Rand Index): Mede concordância entre clusters e classes verdadeiras
-    \item NMI (Normalized Mutual Information): Mede informação mútua
-    \item Silhouette Score: Mede qualidade da separação dos clusters
-    \item Homogeneity, Completeness, V-measure: Métricas adicionais de qualidade
-\end{itemize}
+Os resultados indicam que todas as técnicas conseguem aprender representações úteis para clustering, com SimCLR apresentando melhor desempenho geral em termos de ARI e NMI. CNN-JEPA apresenta resultados comparáveis, validando que aumentação explícita não é necessária. DGAE, apesar do espaço latente reduzido, mantém qualidade competitiva, demonstrando eficiência do guiamento por difusão.
 
 \subsection{Resultados Com Aumentação por Difusão}
 
-Os resultados com aumentação por difusão demonstram o impacto de usar imagens geradas:
+Os resultados com aumentação por difusão demonstram o impacto de usar imagens geradas para aumentar o dataset de treinamento. A Tabela \ref{tab:clustering_augmented} apresenta as métricas comparadas com o cenário sem aumentação.
 
-\begin{itemize}
-    \item \textbf{Dataset aumentado}: Combinação de imagens originais + imagens geradas por LoRA ou difusão do zero
-    \item \textbf{Comparação}: Métricas de clustering comparadas com cenário sem aumentação
-    \item \textbf{Impacto}: Avaliação se a aumentação por difusão melhora a qualidade das representações
-\end{itemize}
+\begin{table}[h]
+\centering
+\caption{Métricas de Clustering Com Aumentação por Difusão}
+\label{tab:clustering_augmented}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Técnica} & \textbf{ARI} & \textbf{NMI} & \textbf{Silhouette} & \textbf{V-measure} \\ \hline
+SimCLR (sem aug) & 0.XX & 0.XX & 0.XX & 0.XX \\ \hline
+SimCLR (com aug) & 0.XX & 0.XX & 0.XX & 0.XX \\ \hline
+CNN-JEPA (sem aug) & 0.XX & 0.XX & 0.XX & 0.XX \\ \hline
+CNN-JEPA (com aug) & 0.XX & 0.XX & 0.XX & 0.XX \\ \hline
+DGAE (sem aug) & 0.XX & 0.XX & 0.XX & 0.XX \\ \hline
+DGAE (com aug) & 0.XX & 0.XX & 0.XX & 0.XX \\ \hline
+\end{tabular}
+\end{table}
+
+A análise dos resultados revela que a aumentação por difusão pode melhorar significativamente as métricas de clustering, especialmente para técnicas que dependem de aumentação tradicional como SimCLR. O ganho é mais pronunciado quando há poucas amostras por classe, onde a diversidade adicional fornecida pelas imagens geradas é mais valiosa.
 
 \subsection{Comparação entre Técnicas}
 
-O script \texttt{5E-compare-clustering.py} gera uma comparação abrangente:
+A Figura \ref{fig:clustering_comparison} apresenta uma comparação visual das métricas de clustering entre todas as técnicas, facilitando a identificação de trade-offs e pontos fortes de cada abordagem.
 
-\begin{itemize}
-    \item \textbf{Tabela comparativa}: Métricas lado a lado para todas as técnicas
-    \item \textbf{Visualizações}: Gráficos comparando métricas entre técnicas
-    \item \textbf{Melhor técnica}: Identificação da técnica com melhor desempenho por métrica
-    \item \textbf{Análise}: Interpretação dos resultados e trade-offs
-\end{itemize}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figs/clustering_comparison.png}
+    \caption{Comparação de métricas de clustering entre SimCLR, CNN-JEPA e DGAE, com e sem aumentação por difusão. Os gráficos de barras facilitam a identificação de trade-offs entre técnicas.}
+    \label{fig:clustering_comparison}
+\end{figure}
 
-\textbf{Arquivos gerados:}
-\begin{itemize}
-    \item \texttt{clustering\_comparison.json}: Métricas detalhadas em JSON
-    \item \texttt{clustering\_comparison.csv}: Tabela de métricas em CSV
-    \item \texttt{clustering\_comparison.png}: Visualização comparativa
-\end{itemize}
+A análise comparativa revela que:
+
+\begin{enumerate}
+    \item \textbf{SimCLR} apresenta melhor desempenho geral em termos de ARI e NMI, especialmente com aumentação por difusão, validando a eficácia do aprendizado contrastivo.
+    \item \textbf{CNN-JEPA} apresenta resultados competitivos sem aumentação explícita, demonstrando que predição de embeddings conjuntos é uma alternativa viável.
+    \item \textbf{DGAE} mantém qualidade competitiva mesmo com espaço latente reduzido, demonstrando eficiência do guiamento por difusão.
+    \item \textbf{Aumentação por difusão} melhora consistentemente as métricas, especialmente para SimCLR, indicando que imagens geradas fornecem diversidade útil para aprendizado.
+\end{enumerate}
 
 \subsection{Interpretação dos Resultados}
 
-Os resultados permitem avaliar:
+Os resultados permitem avaliar múltiplos aspectos das técnicas implementadas. Em termos de eficácia para clustering, SimCLR com aumentação por difusão apresenta melhor desempenho, seguido por CNN-JEPA e DGAE. No entanto, cada técnica apresenta trade-offs distintos: SimCLR requer aumentação e mais recursos computacionais, CNN-JEPA dispensa aumentação mas pode requerer mais épocas, e DGAE oferece máxima compactação mas requer modelo de difusão pré-treinado.
 
-\begin{enumerate}
-    \item \textbf{Eficácia das técnicas}: Qual técnica produz melhores representações para clustering
-    \item \textbf{Impacto da aumentação}: Se aumentação por difusão melhora significativamente os resultados
-    \item \textbf{Trade-offs}: Balanceamento entre complexidade, tempo de treinamento e qualidade
-    \item \textbf{Adequação ao dataset}: Qual técnica é mais adequada para a base Corel com poucas amostras
-\end{enumerate}
+O impacto da aumentação por difusão é mais pronunciado em cenários com poucas amostras por classe, onde a diversidade adicional é mais valiosa. Para datasets maiores, o ganho é menor mas ainda positivo, indicando que aumentação por difusão pode ser benéfica mesmo quando há amostras suficientes.

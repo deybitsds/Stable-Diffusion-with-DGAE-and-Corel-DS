@@ -2,44 +2,50 @@
 
 \section{Revisão das técnicas auto-supervisionadas}
 
-O aprendizado auto-supervisionado tem ganhado destaque como uma alternativa eficaz ao aprendizado supervisionado, especialmente em cenários com poucos dados rotulados. As técnicas auto-supervisionadas aprendem representações úteis explorando a estrutura inerente dos dados, sem necessidade de anotações manuais.
+O aprendizado auto-supervisionado tem ganhado destaque como uma alternativa eficaz ao aprendizado supervisionado, especialmente em cenários com poucos dados rotulados. Como destacado por \cite{chen2020simclr}, as técnicas auto-supervisionadas aprendem representações úteis explorando a estrutura inerente dos dados, sem necessidade de anotações manuais. Esta capacidade é particularmente valiosa em domínios onde anotação é custosa ou onde há abundância de dados não rotulados.
 
 \subsection{SimCLR}
 
-SimCLR (Simple Contrastive Learning of Visual Representations) \cite{chen2020simclr} é uma técnica de aprendizado contrastivo que aprende representações visuais através de pares aumentados da mesma imagem. A ideia central é criar duas versões aumentadas da mesma imagem (par positivo) e usar a perda InfoNCE para fazer com que essas representações sejam similares, enquanto representações de imagens diferentes (pares negativos) sejam dissimilares. SimCLR não requer reconstrução de imagens, focando puramente no aprendizado de representações.
+SimCLR (Simple Contrastive Learning of Visual Representations) \cite{chen2020simclr} é uma técnica de aprendizado contrastivo que aprende representações visuais através de pares aumentados da mesma imagem. A ideia central é criar duas versões aumentadas da mesma imagem (par positivo) e usar a perda InfoNCE para fazer com que essas representações sejam similares, enquanto representações de imagens diferentes (pares negativos) sejam dissimilares. SimCLR não requer reconstrução de imagens, focando puramente no aprendizado de representações através de contraste.
+
+Uma das principais vantagens de SimCLR é sua simplicidade: a arquitetura é direta e o treinamento é relativamente rápido comparado a outras técnicas. No entanto, SimCLR depende criticamente de aumentação de dados para criar pares positivos, o que pode ser uma limitação quando aumentação tradicional não é adequada ou quando se deseja evitar dependência de transformações específicas.
 
 \subsection{BYOL, DINO e DINO-MultiCrop}
 
-BYOL (Bootstrap Your Own Latent) \cite{grill2020byol} elimina a necessidade de pares negativos, usando uma rede target que é atualizada via média móvel exponencial. DINO (Knowledge Distillation with No Labels) \cite{caron2021dino} utiliza distilação de conhecimento auto-supervisionada com transformadores de visão. DINO-MultiCrop estende DINO para usar múltiplas culturas (crops) de imagens, melhorando a robustez das representações.
+BYOL (Bootstrap Your Own Latent) \cite{grill2020byol} elimina a necessidade de pares negativos, usando uma rede target que é atualizada via média móvel exponencial. Esta abordagem simplifica o treinamento e pode resultar em melhor desempenho em alguns cenários. DINO (Knowledge Distillation with No Labels) \cite{caron2021dino} utiliza distilação de conhecimento auto-supervisionada com transformadores de visão, aprendendo representações através de auto-destilação sem necessidade de labels.
+
+DINO-MultiCrop estende DINO para usar múltiplas culturas (crops) de imagens, melhorando a robustez das representações através de diferentes escalas e vistas. Embora estas técnicas sejam promissoras, foram escolhidas alternativas mais simples (SimCLR) e mais inovadoras (CNN-JEPA) para este trabalho, considerando o balanceamento entre complexidade e eficiência.
 
 \subsection{CNN-JEPA}
 
-CNN-JEPA (Joint Embedding Predictive Architecture) \cite{kalapos2025cnnjepa} é uma técnica que dispensa aumentação explícita de dados. Em vez disso, aprende a prever embeddings de uma vista da imagem a partir de outra vista, usando uma arquitetura de predição de embeddings conjuntos. Isso permite aprender representações sem depender de transformações de aumentação tradicionais.
+CNN-JEPA (Joint Embedding Predictive Architecture) \cite{kalapos2025cnnjepa} é uma técnica que dispensa aumentação explícita de dados, representando uma alternativa interessante às abordagens baseadas em aumentação. Em vez de usar transformações de aumentação, CNN-JEPA aprende a prever embeddings de uma vista da imagem a partir de outra vista, usando uma arquitetura de predição de embeddings conjuntos.
+
+Esta abordagem é particularmente relevante para este trabalho, pois permite avaliar se aumentação tradicional é realmente necessária para aprendizado de representações úteis. CNN-JEPA demonstra que é possível aprender boas representações sem depender de transformações específicas, abrindo possibilidades para aplicações onde aumentação tradicional pode não ser adequada ou desejável.
 
 \section{Difusão como aumentação e como guia latente}
 
 \subsection{Modelos de Difusão Estável}
 
-Modelos de difusão estável (Stable Diffusion) \cite{rombach2022high} representam uma evolução significativa na geração de imagens. Ao invés de operar diretamente no espaço de pixels, o Stable Diffusion utiliza um autoencoder variacional (VAE) para comprimir imagens em um espaço latente de menor dimensionalidade, onde o processo de difusão ocorre. Isso resulta em treinamento e inferência muito mais eficientes.
+Modelos de difusão estável (Stable Diffusion) \cite{rombach2022high} representam uma evolução significativa na geração de imagens. Ao invés de operar diretamente no espaço de pixels, o Stable Diffusion utiliza um autoencoder variacional (VAE) para comprimir imagens em um espaço latente de menor dimensionalidade, onde o processo de difusão ocorre. Esta abordagem, conhecida como Latent Diffusion Model (LDM), resulta em treinamento e inferência muito mais eficientes, permitindo geração de imagens de alta qualidade com recursos computacionais razoáveis.
+
+O processo de difusão, conforme descrito por \cite{ho2020denoising}, envolve adicionar ruído gradualmente a uma imagem até que ela se torne ruído puro, e então treinar um modelo para reverter este processo. Durante a inferência, o modelo gera imagens amostrando ruído e iterativamente removendo-o através de predições do modelo treinado.
 
 \subsection{Difusão como Aumentação de Dados}
 
 Em cenários com poucas amostras, modelos de difusão podem ser utilizados para gerar imagens sintéticas que aumentam o conjunto de dados de treinamento. Esta abordagem é particularmente útil quando há poucas amostras por classe, permitindo que modelos de aprendizado auto-supervisionado tenham mais dados para aprender representações robustas.
 
+A aumentação por difusão oferece vantagens sobre aumentação tradicional: as imagens geradas mantêm características semânticas das classes originais enquanto introduzem variação natural através do processo estocástico de geração. Esta propriedade é especialmente valiosa quando aumentação tradicional (como jittering) pode alterar significativamente características relacionadas à classe, conforme mencionado no enunciado do projeto.
+
 \subsection{Difusão como Guia Latente: DGAE}
 
 O artigo DGAE (Diffusion-Guided Autoencoder) \cite{liu2025dgae} propõe uma abordagem inovadora onde um modelo de difusão é utilizado para guiar o decoder de um autoencoder convolucional. Diferentemente da aumentação de dados, o objetivo aqui é melhorar diretamente a representação latente aprendida pelo autoencoder. O modelo de difusão ajuda o decoder a recuperar sinais informativos que não são completamente decodificados a partir da representação latente, resultando em representações mais compactas e expressivas.
 
-A principal vantagem do DGAE é que ele consegue alcançar desempenho comparável a autoencoders maiores com um espaço latente 2x menor, facilitando também a convergência mais rápida de modelos de difusão subsequentes.
+A principal vantagem do DGAE é que ele consegue alcançar desempenho comparável a autoencoders maiores com um espaço latente 2x menor, facilitando também a convergência mais rápida de modelos de difusão subsequentes. Esta eficiência é particularmente relevante para aplicações onde compactação de representações é importante, como em sistemas de busca por similaridade ou análise de grandes volumes de dados.
 
 \section{Motivação para este Trabalho}
 
-Este trabalho é motivado pela necessidade de:
+Este trabalho é motivado pela necessidade de explorar alternativas à aumentação tradicional que possam preservar melhor as características relacionadas à classe, especialmente em cenários com poucas amostras. A aumentação tradicional, como jittering, pode alterar significativamente a aparência da imagem e as características principais relacionadas à classe, limitando a qualidade das representações aprendidas.
 
-\begin{itemize}
-    \item Explorar alternativas à aumentação tradicional que possam preservar melhor as características relacionadas à classe.
-    \item Avaliar o impacto da aumentação por difusão no aprendizado de representações para agrupamento.
-    \item Comparar técnicas que dispensam aumentação explícita (como CNN-JEPA) com técnicas que a utilizam (como SimCLR).
-    \item Investigar se modelos de difusão podem melhorar diretamente a qualidade das representações latentes (DGAE) além de servir como aumentação de dados.
-    \item Validar essas abordagens em um cenário realista com poucas amostras por classe (base Corel).
-\end{itemize}
+Além disso, há interesse em avaliar o impacto da aumentação por difusão no aprendizado de representações para agrupamento, investigando se modelos de difusão podem melhorar diretamente a qualidade das representações latentes (DGAE) além de servir como aumentação de dados. A comparação entre técnicas que dispensam aumentação explícita (como CNN-JEPA) com técnicas que a utilizam (como SimCLR) permite uma avaliação abrangente das diferentes abordagens disponíveis.
+
+Finalmente, a validação dessas abordagens em um cenário realista com poucas amostras por classe (base Corel) fornece insights práticos sobre a aplicabilidade de diferentes técnicas em situações reais, onde dados rotulados são escassos e recursos computacionais podem ser limitados.
