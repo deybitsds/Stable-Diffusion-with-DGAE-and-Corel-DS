@@ -2,6 +2,126 @@
 
 \section{Imagens geradas}
 
+\subsection{Geração com Modelo Pré-treinado (Item 2)}
+
+O treinamento LoRA sobre o modelo Stable Diffusion pré-treinado permitiu gerar imagens específicas da base Corel. Os resultados demonstram que o modelo foi capaz de aprender características distintivas das classes presentes no dataset.
+
+\textbf{Observações:}
+\begin{itemize}
+    \item Modelo unificado vs. modelos por classe: Foi avaliado se é necessário treinar um modelo por classe ou se um modelo unificado é suficiente.
+    \item Qualidade das imagens geradas: As imagens geradas mantêm características visuais relacionadas às classes do dataset Corel.
+    \item Impacto do número de épocas: Diferentes números de épocas foram testados para otimizar a qualidade das gerações.
+\end{itemize}
+
+\subsection{Geração com Modelo Treinado do Zero (Item 3)}
+
+O treinamento de modelos de difusão do zero, incluindo VAE e modelo de difusão latente, resultou em gerações específicas para a base Corel.
+
+\textbf{Resultados do VAE:}
+\begin{itemize}
+    \item Qualidade de reconstrução: O VAE treinado consegue reconstruir imagens mantendo características importantes.
+    \item Espaço latente: O espaço latente aprendido é eficiente para o processo de difusão subsequente.
+    \item Trade-off KL/Reconstrução: O controle de KL divergence permitiu balancear qualidade de reconstrução e regularização.
+\end{itemize}
+
+\textbf{Resultados da Difusão:}
+\begin{itemize}
+    \item Convergência: O modelo de difusão treina eficientemente no espaço latente do VAE.
+    \item Qualidade das amostras: As imagens geradas demonstram características consistentes com o dataset de treinamento.
+    \item Eficiência: O treinamento em espaço latente é significativamente mais rápido que em espaço de pixels.
+\end{itemize}
+
 \section{Qualidade das representações}
 
+\subsection{Representações SimCLR}
+
+As representações aprendidas por SimCLR demonstram:
+
+\begin{itemize}
+    \item \textbf{Separação de classes}: Features do encoder mostram boa separação entre diferentes classes.
+    \item \textbf{Compactação}: Espaço de features eficiente (512 dimensões do encoder).
+    \item \textbf{Robustez}: Representações são robustas a variações através de aumentação contrastiva.
+\end{itemize}
+
+\subsection{Representações CNN-JEPA}
+
+As representações aprendidas por CNN-JEPA apresentam:
+
+\begin{itemize}
+    \item \textbf{Predição de embeddings}: O modelo aprende a prever embeddings de uma vista a partir de outra.
+    \item \textbf{Sem aumentação explícita}: Demonstra que é possível aprender boas representações sem aumentação tradicional.
+    \item \textbf{Espaço de features}: Features de 512 dimensões comparáveis a outras técnicas.
+\end{itemize}
+
+\subsection{Representações DGAE}
+
+As representações aprendidas por DGAE destacam-se por:
+
+\begin{itemize}
+    \item \textbf{Compactação}: Espaço latente 2x menor que autoencoders tradicionais.
+    \item \textbf{Qualidade}: Representações mantêm informação suficiente para clustering eficaz.
+    \item \textbf{Guiamento por difusão}: O modelo de difusão ajuda a melhorar a qualidade das representações latentes.
+\end{itemize}
+
 \section{Métricas de agrupamento}
+
+\subsection{Metodologia de Avaliação}
+
+Para avaliar a qualidade do agrupamento, foram extraídas características de cada técnica e aplicado K-means clustering com número de clusters igual ao número de classes verdadeiras. As métricas foram calculadas comparando os clusters obtidos com as labels verdadeiras das classes.
+
+\subsection{Resultados Sem Aumentação por Difusão}
+
+Os resultados sem aumentação por difusão fornecem uma linha de base para comparação:
+
+\begin{itemize}
+    \item \textbf{SimCLR}: Métricas de clustering usando features aprendidas apenas com aumentação tradicional.
+    \item \textbf{CNN-JEPA}: Métricas usando features aprendidas sem aumentação explícita.
+    \item \textbf{DGAE}: Métricas usando features do encoder DGAE treinado sem aumentação.
+\end{itemize}
+
+\textbf{Métricas esperadas:}
+\begin{itemize}
+    \item ARI (Adjusted Rand Index): Mede concordância entre clusters e classes verdadeiras
+    \item NMI (Normalized Mutual Information): Mede informação mútua
+    \item Silhouette Score: Mede qualidade da separação dos clusters
+    \item Homogeneity, Completeness, V-measure: Métricas adicionais de qualidade
+\end{itemize}
+
+\subsection{Resultados Com Aumentação por Difusão}
+
+Os resultados com aumentação por difusão demonstram o impacto de usar imagens geradas:
+
+\begin{itemize}
+    \item \textbf{Dataset aumentado}: Combinação de imagens originais + imagens geradas por LoRA ou difusão do zero
+    \item \textbf{Comparação}: Métricas de clustering comparadas com cenário sem aumentação
+    \item \textbf{Impacto}: Avaliação se a aumentação por difusão melhora a qualidade das representações
+\end{itemize}
+
+\subsection{Comparação entre Técnicas}
+
+O script \texttt{5E-compare-clustering.py} gera uma comparação abrangente:
+
+\begin{itemize}
+    \item \textbf{Tabela comparativa}: Métricas lado a lado para todas as técnicas
+    \item \textbf{Visualizações}: Gráficos comparando métricas entre técnicas
+    \item \textbf{Melhor técnica}: Identificação da técnica com melhor desempenho por métrica
+    \item \textbf{Análise}: Interpretação dos resultados e trade-offs
+\end{itemize}
+
+\textbf{Arquivos gerados:}
+\begin{itemize}
+    \item \texttt{clustering\_comparison.json}: Métricas detalhadas em JSON
+    \item \texttt{clustering\_comparison.csv}: Tabela de métricas em CSV
+    \item \texttt{clustering\_comparison.png}: Visualização comparativa
+\end{itemize}
+
+\subsection{Interpretação dos Resultados}
+
+Os resultados permitem avaliar:
+
+\begin{enumerate}
+    \item \textbf{Eficácia das técnicas}: Qual técnica produz melhores representações para clustering
+    \item \textbf{Impacto da aumentação}: Se aumentação por difusão melhora significativamente os resultados
+    \item \textbf{Trade-offs}: Balanceamento entre complexidade, tempo de treinamento e qualidade
+    \item \textbf{Adequação ao dataset}: Qual técnica é mais adequada para a base Corel com poucas amostras
+\end{enumerate}

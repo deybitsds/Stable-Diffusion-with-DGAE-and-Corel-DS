@@ -2,4 +2,44 @@
 
 \section{Revisão das técnicas auto-supervisionadas}
 
+O aprendizado auto-supervisionado tem ganhado destaque como uma alternativa eficaz ao aprendizado supervisionado, especialmente em cenários com poucos dados rotulados. As técnicas auto-supervisionadas aprendem representações úteis explorando a estrutura inerente dos dados, sem necessidade de anotações manuais.
+
+\subsection{SimCLR}
+
+SimCLR (Simple Contrastive Learning of Visual Representations) \cite{chen2020simclr} é uma técnica de aprendizado contrastivo que aprende representações visuais através de pares aumentados da mesma imagem. A ideia central é criar duas versões aumentadas da mesma imagem (par positivo) e usar a perda InfoNCE para fazer com que essas representações sejam similares, enquanto representações de imagens diferentes (pares negativos) sejam dissimilares. SimCLR não requer reconstrução de imagens, focando puramente no aprendizado de representações.
+
+\subsection{BYOL, DINO e DINO-MultiCrop}
+
+BYOL (Bootstrap Your Own Latent) \cite{grill2020byol} elimina a necessidade de pares negativos, usando uma rede target que é atualizada via média móvel exponencial. DINO (Knowledge Distillation with No Labels) \cite{caron2021dino} utiliza distilação de conhecimento auto-supervisionada com transformadores de visão. DINO-MultiCrop estende DINO para usar múltiplas culturas (crops) de imagens, melhorando a robustez das representações.
+
+\subsection{CNN-JEPA}
+
+CNN-JEPA (Joint Embedding Predictive Architecture) \cite{kalapos2025cnnjepa} é uma técnica que dispensa aumentação explícita de dados. Em vez disso, aprende a prever embeddings de uma vista da imagem a partir de outra vista, usando uma arquitetura de predição de embeddings conjuntos. Isso permite aprender representações sem depender de transformações de aumentação tradicionais.
+
 \section{Difusão como aumentação e como guia latente}
+
+\subsection{Modelos de Difusão Estável}
+
+Modelos de difusão estável (Stable Diffusion) \cite{rombach2022high} representam uma evolução significativa na geração de imagens. Ao invés de operar diretamente no espaço de pixels, o Stable Diffusion utiliza um autoencoder variacional (VAE) para comprimir imagens em um espaço latente de menor dimensionalidade, onde o processo de difusão ocorre. Isso resulta em treinamento e inferência muito mais eficientes.
+
+\subsection{Difusão como Aumentação de Dados}
+
+Em cenários com poucas amostras, modelos de difusão podem ser utilizados para gerar imagens sintéticas que aumentam o conjunto de dados de treinamento. Esta abordagem é particularmente útil quando há poucas amostras por classe, permitindo que modelos de aprendizado auto-supervisionado tenham mais dados para aprender representações robustas.
+
+\subsection{Difusão como Guia Latente: DGAE}
+
+O artigo DGAE (Diffusion-Guided Autoencoder) \cite{liu2025dgae} propõe uma abordagem inovadora onde um modelo de difusão é utilizado para guiar o decoder de um autoencoder convolucional. Diferentemente da aumentação de dados, o objetivo aqui é melhorar diretamente a representação latente aprendida pelo autoencoder. O modelo de difusão ajuda o decoder a recuperar sinais informativos que não são completamente decodificados a partir da representação latente, resultando em representações mais compactas e expressivas.
+
+A principal vantagem do DGAE é que ele consegue alcançar desempenho comparável a autoencoders maiores com um espaço latente 2x menor, facilitando também a convergência mais rápida de modelos de difusão subsequentes.
+
+\section{Motivação para este Trabalho}
+
+Este trabalho é motivado pela necessidade de:
+
+\begin{itemize}
+    \item Explorar alternativas à aumentação tradicional que possam preservar melhor as características relacionadas à classe.
+    \item Avaliar o impacto da aumentação por difusão no aprendizado de representações para agrupamento.
+    \item Comparar técnicas que dispensam aumentação explícita (como CNN-JEPA) com técnicas que a utilizam (como SimCLR).
+    \item Investigar se modelos de difusão podem melhorar diretamente a qualidade das representações latentes (DGAE) além de servir como aumentação de dados.
+    \item Validar essas abordagens em um cenário realista com poucas amostras por classe (base Corel).
+\end{itemize}

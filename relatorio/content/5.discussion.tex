@@ -2,6 +2,155 @@
 
 \section{Comparação entre abordagens}
 
+\subsection{SimCLR vs CNN-JEPA vs DGAE}
+
+As três técnicas implementadas apresentam características distintas que as tornam adequadas para diferentes cenários:
+
+\textbf{SimCLR:}
+\begin{itemize}
+    \item \textbf{Vantagens}: Simplicidade de implementação, treinamento rápido, boa separação de classes
+    \item \textbf{Desvantagens}: Requer aumentação explícita, pode ser sensível a hiperparâmetros (temperatura)
+    \item \textbf{Adequação}: Boa para datasets com distribuição balanceada, quando aumentação tradicional é aceitável
+\end{itemize}
+
+\textbf{CNN-JEPA:}
+\begin{itemize}
+    \item \textbf{Vantagens}: Dispensa aumentação explícita, arquitetura de predição inovadora
+    \item \textbf{Desvantagens}: Pode requerer mais épocas para convergência, arquitetura mais complexa
+    \item \textbf{Adequação}: Útil quando aumentação tradicional não é desejável ou quando se quer evitar dependência de transformações
+\end{itemize}
+
+\textbf{DGAE:}
+\begin{itemize}
+    \item \textbf{Vantagens}: Espaço latente muito compacto (2x menor), guiamento por modelo de difusão, representações eficientes
+    \item \textbf{Desvantagens}: Requer modelo de difusão pré-treinado, treinamento mais complexo
+    \item \textbf{Adequação}: Ideal quando se busca representações compactas e quando já se tem modelos de difusão disponíveis
+\end{itemize}
+
+\subsection{Fatores de Decisão}
+
+A escolha entre técnicas deve considerar:
+
+\begin{enumerate}
+    \item \textbf{Tamanho do dataset}: SimCLR pode ser mais eficiente com datasets maiores
+    \item \textbf{Recursos computacionais}: DGAE requer mais memória devido ao modelo de difusão
+    \item \textbf{Objetivo final}: Se o objetivo é clustering, todas são viáveis; se é compressão, DGAE é superior
+    \item \textbf{Disponibilidade de modelos}: DGAE requer modelo de difusão pré-treinado
+\end{enumerate}
+
 \section{Impacto da aumentação por difusão}
 
-\section{Eficiência do DGAE vs. CNN-JEPA}
+\subsection{Hipóteses}
+
+Avaliamos as seguintes hipóteses sobre o impacto da aumentação por difusão:
+
+\begin{enumerate}
+    \item \textbf{Hipótese 1}: Aumentação por difusão melhora a qualidade das representações aprendidas
+    \item \textbf{Hipótese 2}: O impacto é maior em cenários com poucas amostras por classe
+    \item \textbf{Hipótese 3}: Diferentes técnicas respondem de forma diferente à aumentação
+\end{enumerate}
+
+\subsection{Análise dos Resultados}
+
+\textbf{Com poucas amostras:}
+\begin{itemize}
+    \item Aumentação por difusão pode fornecer diversidade adicional necessária
+    \item Imagens geradas mantêm características semânticas das classes
+    \item Pode ajudar técnicas como SimCLR que dependem de aumentação
+\end{itemize}
+
+\textbf{Com muitas amostras:}
+\begin{itemize}
+    \item O impacto pode ser menor, pois já há diversidade suficiente
+    \item Pode até introduzir ruído se as gerações não forem de alta qualidade
+    \item Trade-off entre quantidade e qualidade das amostras aumentadas
+\end{itemize}
+
+\subsection{Comparação: Com vs Sem Aumentação}
+
+Os resultados permitem avaliar:
+
+\begin{itemize}
+    \item \textbf{Métricas de clustering}: Se ARI, NMI e Silhouette melhoram com aumentação
+    \item \textbf{Consistência}: Se o impacto é consistente entre diferentes técnicas
+    \item \textbf{Magnitude}: Quão significativo é o ganho (se houver)
+\end{itemize}
+
+\subsection{Interpretação}
+
+A aumentação por difusão pode ser benéfica quando:
+
+\begin{itemize}
+    \item Há poucas amostras por classe (< 50)
+    \item As classes são visualmente distintas
+    \item O modelo de difusão foi bem treinado e gera imagens de qualidade
+    \item A diversidade das gerações complementa o dataset original
+\end{itemize}
+
+Pode não ser benéfica quando:
+
+\begin{itemize}
+    \item Há muitas amostras por classe (> 100)
+    \item As gerações introduzem artefatos ou distorções
+    \item O modelo de difusão não captura bem as características das classes
+    \item A aumentação tradicional já é suficiente
+\end{itemize}
+
+\section{Eficiência do DGAE vs CNN-JEPA}
+
+\subsection{Comparação de Eficiência}
+
+\textbf{DGAE:}
+\begin{itemize}
+    \item \textbf{Espaço latente}: 2x menor que autoencoders tradicionais
+    \item \textbf{Memória}: Requer modelo de difusão em memória durante treinamento
+    \item \textbf{Tempo de treinamento}: Mais lento devido ao guiamento por difusão
+    \item \textbf{Qualidade}: Representações compactas mantendo qualidade
+\end{itemize}
+
+\textbf{CNN-JEPA:}
+\begin{itemize}
+    \item \textbf{Espaço de features}: Comparável a outras técnicas (512 dim)
+    \item \textbf{Memória}: Mais eficiente, não requer modelo externo
+    \item \textbf{Tempo de treinamento}: Rápido, arquitetura simples
+    \item \textbf{Qualidade}: Boa separação de classes sem aumentação
+\end{itemize}
+
+\subsection{Trade-offs}
+
+\textbf{Quando escolher DGAE:}
+\begin{itemize}
+    \item Quando se busca máxima compactação do espaço latente
+    \item Quando já se tem modelos de difusão disponíveis
+    \item Quando o objetivo é integração com modelos de difusão subsequentes
+    \item Quando recursos computacionais permitem treinamento mais complexo
+\end{itemize}
+
+\textbf{Quando escolher CNN-JEPA:}
+\begin{itemize}
+    \item Quando se quer evitar dependência de modelos externos
+    \item Quando se busca simplicidade e eficiência
+    \item Quando aumentação explícita não é desejável
+    \item Quando recursos computacionais são limitados
+\end{itemize}
+
+\subsection{Resultados Esperados}
+
+Com base na literatura e implementação:
+
+\begin{itemize}
+    \item \textbf{DGAE}: Deve alcançar qualidade comparável com espaço latente menor
+    \item \textbf{CNN-JEPA}: Deve demonstrar que aumentação não é estritamente necessária
+    \item \textbf{Comparação}: Ambas devem ser competitivas com SimCLR em métricas de clustering
+\end{itemize}
+
+\subsection{Implicações Práticas}
+
+Os resultados têm implicações para:
+
+\begin{enumerate}
+    \item \textbf{Escolha de técnica}: Guia para selecionar técnica baseada em requisitos
+    \item \textbf{Design de pipeline}: Como integrar aumentação por difusão em workflows
+    \item \textbf{Otimização de recursos}: Balanceamento entre qualidade e eficiência
+    \item \textbf{Pesquisa futura}: Direções promissoras para melhorias
+\end{enumerate}

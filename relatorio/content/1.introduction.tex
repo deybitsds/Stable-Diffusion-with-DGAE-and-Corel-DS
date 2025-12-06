@@ -1,1 +1,23 @@
 \chapter{Introdução}
+
+O aprendizado auto-supervisionado tem se mostrado uma abordagem promissora para aprender representações úteis de dados sem a necessidade de anotações manuais. Técnicas como SimCLR, BYOL, DINO e DINO-MultiCrop utilizam aumentação de dados como parte essencial do projeto de um extrator de características de imagem (encoder). No entanto, métodos tradicionais de aumentação, como jittering, podem alterar significativamente a aparência da imagem e as características principais relacionadas à classe.
+
+Este trabalho explora alternativas à aumentação tradicional, incluindo modelos de difusão estável (Stable Diffusion) e técnicas que dispensam aumentação explícita, como CNN-JEPA (Joint Embedding Predictive Architecture). Além disso, avaliamos o uso de modelos de difusão para melhorar diretamente a representação latente de um autoencoder, como proposto no artigo DGAE (Diffusion-Guided Autoencoder).
+
+O objetivo principal deste projeto é reavaliar o agrupamento de imagens da base Corel com diferentes abordagens de aprendizado auto-supervisionado e aumentação de dados, comparando os resultados com métricas de agrupamento utilizadas em projetos anteriores.
+
+\section{Objetivos}
+
+Os objetivos específicos deste trabalho são:
+
+\begin{enumerate}
+    \item Estudar modelos de difusão estável (Stable Diffusion), especialmente em cenários com poucas amostras, e suas aplicações no aprendizado auto-supervisionado de espaços latentes.
+    \item Criar metadados para a base Corel e adaptar códigos de difusão estável para a geração de imagens da base Corel com modelo pré-treinado, verificando se é necessário ou não adaptar um modelo por classe.
+    \item Melhorar os códigos de difusão estável para a geração de imagens da base Corel com modelo treinado do zero, verificando se é necessário ou não treinar um modelo por classe.
+    \item Implementar a abordagem do artigo DGAE, utilizando o modelo pré-treinado para treinar um autoencoder convolucional, com o objetivo de aprender características latentes para fins de agrupamento (não para aumentação de dados).
+    \item Avaliar o agrupamento das imagens da base Corel (com e sem aumentação por difusão) utilizando técnicas de extração de características: SimCLR, CNN-JEPA e DGAE.
+\end{enumerate}
+
+\section{Estrutura do Trabalho}
+
+Este relatório está organizado da seguinte forma: o Capítulo 2 apresenta a motivação e revisão das técnicas auto-supervisionadas; o Capítulo 3 descreve a metodologia, incluindo a base de dados Corel e as implementações realizadas; o Capítulo 4 apresenta os resultados obtidos; o Capítulo 5 discute os resultados e compara as diferentes abordagens; e o Capítulo 6 apresenta as conclusões e sugestões para trabalhos futuros.

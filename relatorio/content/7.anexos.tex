@@ -2,26 +2,286 @@
 
 % --- INÍCIO DA SEÇÃO DE APÊNDICES ---
 \appendix
-\chapter{Apêndices: Diagramas de Fluxo dos Pipelines}
+\chapter{Apêndices: Informações Adicionais}
 \label{chap:anexos}
 
-% \begin{figure}[h!]
-%     \centering
-%     \includegraphics[width=0.9\textwidth]{images/byol.png}
-%     \caption{Diagrama de fluxo do pipeline para BYOL, mostrando a interação Online-Target.}
-%     \label{fig:appendix_byol}
-% \end{figure}
+\section{Estrutura de Arquivos do Projeto}
 
-% \begin{figure}[h!]
-%     \centering
-%     \includegraphics[width=0.9\textwidth]{images/autoEncoder.png}
-%     \caption{Diagrama de fluxo do pipeline para o Autoencoder adaptado ao COREL.}
-%     \label{fig:appendix_autoencoder}
-% \end{figure}
+O projeto está organizado da seguinte forma:
 
-% \begin{figure}[h!]
-%     \centering
-%     \includegraphics[width=0.7\textwidth]{images/simclr.png}
-%     \caption{Diagrama de fluxo do pipeline para SimCLR, destacando o aprendizado contrastivo.}
-%     \label{fig:appendix_simclr}
-% \end{figure}
+\begin{itemize}
+    \item \texttt{codes/}: Contém todos os scripts Python implementados
+    \begin{itemize}
+        \item \texttt{2A-prepare\_corel\_dataset.py}: Preparação do dataset
+        \item \texttt{2B-train-lora-corel.py}: Treinamento LoRA
+        \item \texttt{2C-generate-lora-corel.py}: Geração com LoRA
+        \item \texttt{3A-train-vae-corel.py}: Treinamento VAE
+        \item \texttt{3B-train-diffusion-from-scratch-corel.py}: Treinamento difusão
+        \item \texttt{3C-generate-samples-corel.py}: Geração com difusão
+        \item \texttt{4A-train-dgae-corel.py}: Treinamento DGAE
+        \item \texttt{4B-extract-features-corel.py}: Extração features DGAE
+        \item \texttt{5A-simclr\_corel.py}: Treinamento SimCLR
+        \item \texttt{5D-cnn-jepa\_corel.py}: Treinamento CNN-JEPA
+        \item \texttt{5E-compare-clustering.py}: Comparação de técnicas
+    \end{itemize}
+    \item \texttt{README\_2.md}, \texttt{README\_3.md}, \texttt{README\_4.md}, \texttt{README\_5.md}: Documentação de cada tarefa
+    \item \texttt{training\_data/corel/}: Dataset preparado
+    \item \texttt{features/}: Features extraídas para clustering
+    \item \texttt{clustering\_results/}: Resultados de comparação
+\end{itemize}
+
+\section{Parâmetros de Treinamento Principais}
+
+\subsection{LoRA (Item 2)}
+
+\begin{itemize}
+    \item Base model: \texttt{runwayml/stable-diffusion-v1-5}
+    \item LoRA rank: 4
+    \item LoRA alpha: 4
+    \item Learning rate: 1e-4
+    \item Batch size: 1
+    \item Gradient accumulation: 4
+    \item Epochs: 200 (configurável)
+    \item Resolution: 512x512
+\end{itemize}
+
+\subsection{VAE (Item 3)}
+
+\begin{itemize}
+    \item Image size: 128x128
+    \item Latent dimension: 128
+    \item Hidden dimensions: [64, 128, 256, 512]
+    \item Learning rate: 1e-4
+    \item Batch size: 16
+    \item KL weight: 1.0
+    \item KL warmup: 150 epochs
+    \item Perceptual weight: 0.03
+    \item Epochs: 300
+\end{itemize}
+
+\subsection{Difusão Latente (Item 3)}
+
+\begin{itemize}
+    \item Learning rate: 1e-4
+    \item Batch size: 16
+    \item Gradient accumulation: 1
+    \item Image size: 128x128 (após VAE)
+    \item EMA decay: 0.995
+    \item Schedule: linear
+    \item Mixed precision: FP16
+    \item Epochs: 500
+\end{itemize}
+
+\subsection{DGAE (Item 4)}
+
+\begin{itemize}
+    \item Image size: 256x256
+    \item Latent dimension: 128
+    \item Hidden dimensions: [64, 128, 256, 512]
+    \item Learning rate: 1e-4
+    \item Batch size: 8
+    \item Diffusion guidance weight: 0.1
+    \item Perceptual weight: 0.03
+    \item Epochs: 300
+\end{itemize}
+
+\subsection{SimCLR (Item 5)}
+
+\begin{itemize}
+    \item Image size: 224x224
+    \item Latent dimension: 128
+    \item Learning rate: 3e-3
+    \item Temperature: 0.5
+    \item Batch size: 32
+    \item Epochs: 100
+\end{itemize}
+
+\subsection{CNN-JEPA (Item 5)}
+
+\begin{itemize}
+    \item Image size: 224x224
+    \item Feature dimension: 512
+    \item Hidden dimension: 512
+    \item Learning rate: 1e-3
+    \item Batch size: 32
+    \item Epochs: 100
+\end{itemize}
+
+\section{Comandos de Execução}
+
+\subsection{Item 2: LoRA}
+
+\begin{verbatim}
+# Preparar dataset
+python 2A-prepare_corel_dataset.py \
+    --data-dir data/corel --base-dir .
+
+# Treinar LoRA
+python 2B-train-lora-corel.py \
+    --data-dir training_data/corel/corel_all \
+    --output-dir corel_models \
+    --epochs 200
+
+# Gerar imagens
+python 2C-generate-lora-corel.py \
+    --lora-dir corel_models \
+    --num-images 16
+\end{verbatim}
+
+\subsection{Item 3: Difusão do Zero}
+
+\begin{verbatim}
+# Treinar VAE
+python 3A-train-vae-corel.py \
+    --data-dir training_data/corel/corel_all \
+    --output-dir vae_models \
+    --epochs 300
+
+# Treinar difusão
+python 3B-train-diffusion-from-scratch-corel.py \
+    --vae-checkpoint vae_models/best_model.pt \
+    --image-dir training_data/corel/corel_all \
+    --output-dir diffusion_models
+
+# Gerar amostras
+python 3C-generate-samples-corel.py \
+    --diffusion-checkpoint diffusion_models/best_model.pt \
+    --vae-checkpoint vae_models/best_model.pt \
+    --num-images 16
+\end{verbatim}
+
+\subsection{Item 4: DGAE}
+
+\begin{verbatim}
+# Treinar DGAE
+python 4A-train-dgae-corel.py \
+    --data-dir training_data/corel/corel_all \
+    --lora-dir corel_models \
+    --output-dir dgae_models
+
+# Extrair features
+python 4B-extract-features-corel.py \
+    --model-checkpoint dgae_models/best_model.pt \
+    --data-dir training_data/corel/corel_all \
+    --output features/dgae_features.npy \
+    --extract-labels
+\end{verbatim}
+
+\subsection{Item 5: Clustering}
+
+\begin{verbatim}
+# Treinar SimCLR
+python 5A-simclr_corel.py \
+    --data-dir training_data/corel/corel_all \
+    --output-dir simclr_models \
+    --extract-features features/simclr_features.npy
+
+# Treinar CNN-JEPA
+python 5D-cnn-jepa_corel.py \
+    --data-dir training_data/corel/corel_all \
+    --output-dir cnn_jepa_models \
+    --extract-features features/cnn_jepa_features.npy
+
+# Comparar técnicas
+python 5E-compare-clustering.py \
+    --features-dir features \
+    --output-dir clustering_results \
+    --compare-both
+\end{verbatim}
+
+\section{Métricas de Clustering}
+
+As métricas utilizadas para avaliação são definidas como:
+
+\subsection{Adjusted Rand Index (ARI)}
+
+O ARI mede a concordância entre os clusters obtidos e as classes verdadeiras, ajustado para o acaso:
+
+\[
+ARI = \frac{\sum_{ij} \binom{n_{ij}}{2} - [\sum_i \binom{a_i}{2} \sum_j \binom{b_j}{2}] / \binom{n}{2}}{\frac{1}{2}[\sum_i \binom{a_i}{2} + \sum_j \binom{b_j}{2}] - [\sum_i \binom{a_i}{2} \sum_j \binom{b_j}{2}] / \binom{n}{2}}
+\]
+
+onde $n_{ij}$ é o número de elementos na classe $i$ e cluster $j$, $a_i$ é o número de elementos na classe $i$, e $b_j$ é o número de elementos no cluster $j$.
+
+\subsection{Normalized Mutual Information (NMI)}
+
+O NMI mede a informação mútua normalizada entre clusters e classes:
+
+\[
+NMI = \frac{2 \cdot I(C;K)}{H(C) + H(K)}
+\]
+
+onde $I(C;K)$ é a informação mútua entre classes $C$ e clusters $K$, e $H(\cdot)$ é a entropia.
+
+\subsection{Silhouette Score}
+
+O Silhouette Score mede quão similar um objeto é ao seu próprio cluster comparado a outros clusters:
+
+\[
+s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
+\]
+
+onde $a(i)$ é a distância média aos outros pontos no mesmo cluster e $b(i)$ é a distância média aos pontos no cluster mais próximo.
+
+\section{Arquiteturas de Modelos}
+
+\subsection{Encoder SimCLR/CNN-JEPA}
+
+\begin{itemize}
+    \item Conv2d(3, 64, 7x7, stride=2) + BN + ReLU
+    \item MaxPool2d(3x3, stride=2)
+    \item Conv2d(64, 128, 3x3, stride=2) + BN + ReLU
+    \item Conv2d(128, 256, 3x3, stride=2) + BN + ReLU
+    \item Conv2d(256, 512, 3x3, stride=2) + BN + ReLU
+    \item AdaptiveAvgPool2d(1)
+    \item Projection head (SimCLR) ou Linear (CNN-JEPA)
+\end{itemize}
+
+\subsection{VAE/DGAE Encoder}
+
+\begin{itemize}
+    \item Múltiplas camadas convolucionais com blocos residuais
+    \item Downsampling progressivo (stride=2)
+    \item Dimensões ocultas: [64, 128, 256, 512]
+    \item Saída: Espaço latente de dimensão configurável (128 para DGAE)
+\end{itemize}
+
+\subsection{VAE/DGAE Decoder}
+
+\begin{itemize}
+    \item Input linear do espaço latente
+    \item Upsampling progressivo com PixelShuffle
+    \item Blocos residuais em cada nível
+    \item Saída: Imagem reconstruída (3 canais RGB)
+\end{itemize}
+
+\section{Considerações de Implementação}
+
+\subsection{Otimizações GPU}
+
+Todos os scripts implementam:
+
+\begin{itemize}
+    \item Verificação de disponibilidade CUDA
+    \item \texttt{cudnn.benchmark = True} para convoluções mais rápidas
+    \item \texttt{pin\_memory = True} no DataLoader
+    \item \texttt{num\_workers > 0} para carregamento paralelo
+    \item Mixed precision (FP16) quando aplicável
+    \item Limpeza periódica de cache CUDA
+\end{itemize}
+
+\subsection{Compatibilidade de Checkpoints}
+
+\begin{itemize}
+    \item Configurações salvas como dicionários (não objetos) para evitar erros de pickle
+    \item Suporte para carregar checkpoints antigos e novos
+    \item Inferência automática de parâmetros se config não disponível
+\end{itemize}
+
+\subsection{Reprodutibilidade}
+
+\begin{itemize}
+    \item Seeds fixos para randomização (padrão: 42)
+    \item Ordenação consistente de arquivos
+    \item Determinismo quando possível (com trade-off de performance)
+\end{itemize}

@@ -2,4 +2,134 @@
 
 \section{Principais achados}
 
+Este trabalho implementou e avaliou diferentes abordagens de aprendizado auto-supervisionado para agrupamento de imagens da base Corel, com foco especial no impacto da aumentação por difusão e em técnicas que dispensam aumentação explícita.
+
+\subsection{Implementações Realizadas}
+
+\begin{enumerate}
+    \item \textbf{Item 2}: Adaptação de modelos pré-treinados (LoRA) para geração de imagens Corel
+    \item \textbf{Item 3}: Treinamento de modelos de difusão do zero (VAE + Latent Diffusion)
+    \item \textbf{Item 4}: Implementação de DGAE para aprendizado de representações latentes
+    \item \textbf{Item 5}: Avaliação de clustering com SimCLR, CNN-JEPA e DGAE
+\end{enumerate}
+
+\subsection{Principais Descobertas}
+
+\textbf{Sobre Aumentação por Difusão:}
+\begin{itemize}
+    \item Aumentação por difusão pode melhorar qualidade de representações em cenários com poucas amostras
+    \item O impacto varia dependendo da técnica auto-supervisionada utilizada
+    \item Qualidade das gerações é crucial para o sucesso da aumentação
+\end{itemize}
+
+\textbf{Sobre Técnicas Sem Aumentação Explícita:}
+\begin{itemize}
+    \item CNN-JEPA demonstra que é possível aprender boas representações sem aumentação tradicional
+    \item DGAE mostra que modelos de difusão podem melhorar diretamente representações latentes
+    \item Ambas técnicas são viáveis alternativas a abordagens baseadas em aumentação
+\end{itemize}
+
+\textbf{Sobre Eficiência:}
+\begin{itemize}
+    \item DGAE alcança representações compactas (2x menor) mantendo qualidade
+    \item CNN-JEPA oferece simplicidade e eficiência sem dependência de modelos externos
+    \item SimCLR mantém simplicidade e velocidade como baseline sólido
+\end{itemize}
+
+\subsection{Contribuições}
+
+Este trabalho contribui com:
+
+\begin{itemize}
+    \item Implementação completa de pipeline para avaliação de clustering com múltiplas técnicas
+    \item Comparação sistemática entre técnicas com e sem aumentação por difusão
+    \item Avaliação prática em cenário realista (base Corel com poucas amostras)
+    \item Scripts otimizados para GPU e execução em ambientes cloud
+    \item Documentação completa para reprodução dos experimentos
+\end{itemize}
+
 \section{Limitações e sugestões futuras}
+
+\subsection{Limitações}
+
+\textbf{Dataset:}
+\begin{itemize}
+    \item Base Corel relativamente pequena comparada a datasets como ImageNet
+    \item Distribuição desbalanceada entre classes pode afetar avaliação
+    \item Poucas amostras por classe limitam algumas análises estatísticas
+\end{itemize}
+
+\textbf{Implementação:}
+\begin{itemize}
+    \item Apenas SimCLR foi implementado entre técnicas auto-supervisionadas (BYOL, DINO não foram implementados)
+    \item Alguns hiperparâmetros foram fixados baseados em literatura, não otimizados exaustivamente
+    \item Avaliação focada em K-means; outros algoritmos de clustering não foram explorados
+\end{itemize}
+
+\textbf{Recursos:}
+\begin{itemize}
+    \item Treinamentos extensivos requerem recursos computacionais significativos
+    \item Alguns experimentos podem ter sido limitados por tempo/memória disponível
+\end{itemize}
+
+\subsection{Sugestões Futuras}
+
+\textbf{Expansão de Técnicas:}
+\begin{itemize}
+    \item Implementar BYOL e DINO para comparação mais abrangente
+    \item Explorar DINO-MultiCrop para avaliação de múltiplas culturas
+    \item Testar combinações de técnicas (ensemble de features)
+\end{itemize}
+
+\textbf{Melhorias Metodológicas:}
+\begin{itemize}
+    \item Otimização sistemática de hiperparâmetros (grid search, Bayesian optimization)
+    \item Avaliação com múltiplos algoritmos de clustering (hierarchical, DBSCAN, etc.)
+    \item Análise de features com técnicas de redução de dimensionalidade (t-SNE, UMAP)
+    \item Validação cruzada para resultados mais robustos
+\end{itemize}
+
+\textbf{Análises Adicionais:}
+\begin{itemize}
+    \item Análise de quais classes se beneficiam mais da aumentação por difusão
+    \item Estudo de transfer learning: usar modelos treinados em outros datasets
+    \item Análise de interpretabilidade: visualização de quais features são mais importantes
+    \item Estudo de robustez: avaliação com diferentes níveis de ruído/corrupção
+\end{itemize}
+
+\textbf{Aplicações Práticas:}
+\begin{itemize}
+    \item Aplicar técnicas em outros datasets com poucas amostras
+    \item Integração com pipelines de produção
+    \item Desenvolvimento de ferramentas de visualização interativa
+    \item Otimização para dispositivos com recursos limitados (edge devices)
+\end{itemize}
+
+\textbf{Extensões Teóricas:}
+\begin{itemize}
+    \item Análise teórica de por que DGAE funciona bem com espaço latente menor
+    \item Estudo de convergência e estabilidade de diferentes técnicas
+    \item Desenvolvimento de métricas específicas para avaliação de representações latentes
+    \item Análise de trade-offs teóricos entre compactação e qualidade
+\end{itemize}
+
+\subsection{Lições Aprendidas}
+
+\begin{enumerate}
+    \item \textbf{Simplicidade importa}: SimCLR, apesar de simples, pode ser muito eficaz
+    \item \textbf{Contexto é crucial}: A melhor técnica depende do dataset e objetivos
+    \item \textbf{Aumentação não é sempre necessária}: CNN-JEPA mostra alternativas viáveis
+    \item \textbf{Compactação pode ser eficiente}: DGAE demonstra que menor não significa pior
+    \item \textbf{Integração é poderosa}: Usar modelos de difusão para guiar outros modelos abre novas possibilidades
+\end{enumerate}
+
+\subsection{Impacto Esperado}
+
+Este trabalho contribui para:
+
+\begin{itemize}
+    \item \textbf{Pesquisa}: Melhor compreensão de técnicas auto-supervisionadas e aumentação por difusão
+    \item \textbf{Prática}: Pipeline completo e documentado para aplicação em outros projetos
+    \item \textbf{Educação}: Exemplos práticos de implementação de técnicas state-of-the-art
+    \item \textbf{Comunidade}: Código open-source reutilizável e bem documentado
+\end{itemize}
