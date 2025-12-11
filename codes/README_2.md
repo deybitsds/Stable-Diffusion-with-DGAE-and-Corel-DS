@@ -238,7 +238,7 @@ All scripts are optimized for GPU execution:
 python 2A-prepare_corel_dataset.py --data-dir data/corel --base-dir .
 
 # 2. Train LoRA
-python 2B-train-lora-corel.py --data-dir training_data/corel/corel_all --output-dir corel_models --epochs 200
+python 2B-train-lora-corel.py --data-dir training_data/corel/corel_all --output-dir corel_models --epochs 100
 
 # 3. Generate images with LoRA
 python 2C-generate-lora-corel.py --lora-dir corel_models --prompt "a photo of a corel image" --num-images 8

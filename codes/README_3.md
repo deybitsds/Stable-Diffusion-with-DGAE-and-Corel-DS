@@ -58,6 +58,16 @@ python 3A-train-vae-corel.py --data-dir training_data/corel/corel_all --output-d
 
 # Train for specific class
 python 3A-train-vae-corel.py --data-dir training_data/corel/class_0001 --output-dir vae_models/class_0001
+
+##### ----------------------------------
+
+python 3A-train-vae-corel.py \
+    --data-dir training_data/corel/class_0001 \
+    --output-dir vae_models/class_0001 \
+    --epochs 400
+
+##### ----------------------------------
+
 ```
 
 **VAE Training Parameters:**
@@ -111,6 +121,15 @@ python 3B-train-diffusion-from-scratch-corel.py \
     --vae-checkpoint vae_models/class_0001/best_model.pt \
     --image-dir training_data/corel/class_0001 \
     --output-dir diffusion_models/class_0001
+
+##### ----------------------------------
+python 3B-train-diffusion-from-scratch-corel.py \
+    --vae-checkpoint vae_models/class_0001/best_model.pt \
+    --image-dir training_data/corel/class_0001 \
+    --output-dir diffusion_models/class_0001 \
+    --epochs 500
+##### ----------------------------------
+
 ```
 
 **Diffusion Training Parameters:**
@@ -170,6 +189,14 @@ python 3C-generate-samples-corel.py \
     --diffusion-checkpoint diffusion_models/best_model.pt \
     --vae-checkpoint vae_models/best_model.pt \
     --num-images 32 --ddim-steps 50 --output generated_images.png
+
+
+python 3C-generate-samples-corel.py \
+    --diffusion-checkpoint diffusion_models/class_0001/best_model.pt \
+    --vae-checkpoint vae_models/class_0001/best_model.pt \
+    --num-images 16 \
+    --output class_0001_generated.png
+    
 ```
 
 **Generation Parameters:**
